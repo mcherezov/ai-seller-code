@@ -310,11 +310,7 @@ def save_analysis_to_db_extended(analysis_result):
         print("Нет данных для сохранения в БД")
         return False
 
-    host = 'rc1a-6ic32g9da782j8kh.mdb.yandexcloud.net'
-    port = 6432
-    database = 'app'
-    user = 'aiadmin'
-    password = 'b1g8fqrgbp56ppg4uucc8jfi4'
+   
     table_name = 'algo.llm_recommendations'
 
     try:
@@ -428,11 +424,7 @@ def save_analysis_to_db_extended(analysis_result):
 
 
 def add_missing_columns_if_needed():
-    host = 'rc1a-6ic32g9da782j8kh.mdb.yandexcloud.net'
-    port = 6432
-    database = 'app'
-    user = 'aiadmin'
-    password = 'b1g8fqrgbp56ppg4uucc8jfi4'
+   
     table_name = 'algo.llm_recommendations'
 
     try:
