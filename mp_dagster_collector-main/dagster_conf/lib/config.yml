@@ -1,0 +1,2682 @@
+__doc__: |
+  Таблица соответствий пайплайнов ↔ бронзовые/серебряные модели
+
+  | pipeline                    | bronze model                   | silver models                                   |
+  |-----------------------------|--------------------------------|-------------------------------------------------|
+  | wb_paid_storage_1d          | wb_paid_storage_1d             | wb_paid_storage_1d                              |
+  | wb_paid_acceptances_1d      | wb_paid_acceptances_1d         | wb_paid_acceptances_1d                          |
+  | wb_supplier_incomes_1d      | wb_supplier_incomes_1d         | wb_supplier_incomes_1d                          |
+  | wb_nm_report_detail_1d      | nm_report_detail               | wb_buyouts_percent_1d, wb_sales_funnels_1d      |
+  | wb_adv_promotions_1h        | wb_adv_promotions_1h           | wb_adv_promotions_1h                            |
+  | wb_adv_campaigns_1d         | wb_adv_campaigns_1d            | wb_adv_campaigns_1d                             |
+  | wb_adv_keyword_stats_1d     | wb_adv_keyword_stats           | wb_adv_keyword_stats_1d                         |
+  | wb_adv_keyword_stats_1h     | wb_adv_keyword_stats           | wb_adv_keyword_stats_1h                         |
+  | wb_adv_product_positions_1d | wb_adv_product_positions_1d    | wb_adv_product_positions_1d                     |
+  | wb_adv_product_stats_1d     | wb_adv_product_stats           | wb_adv_product_stats_1d                         |
+  | wb_adv_product_stats_1h     | wb_adv_product_stats           | wb_adv_product_stats_1h                         |
+  | wb_product_search_texts_1d  | wb_product_search_texts_1d     | wb_search_product_stats_1d                      |
+
+  Правила:
+  • Все поля в silver NOT NULL по умолчанию (если в lineage явно не указано `nullable: true`).
+  • Если в lineage указано `default: ...`, используем это как дефолт (часто вместе с `nullable: true`).
+  • В каждой silver-таблице обязателен отдельный индекс по `request_uuid`.
+  • Расписания по умолчанию: ежедневные — 04:00 MSK; часовые — каждые 30 минут.
+
+
+defaults:
+  partitions:
+    company_id:
+      query: "SELECT DISTINCT company_id FROM core.tokens WHERE is_active = TRUE"
+      # allowlist: [101, 202]   # при необходимости
+
+pipelines:
+
+  # ─────────────────────────────────────────────────────────────
+  # Поисковая воронка продаж товара в разрезе поисковых запросов 
+  # ─────────────────────────────────────────────────────────────
+  wb_product_search_texts_1d:
+    description: "Поисковая воронка продаж товара в разрезе поисковых запросов (собственный ТОП запросов товара)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 6 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    build_request_params: dagster_conf.lib.asset_customization.products:build_product_search_texts_params
+
+    api:
+      method: fetch_product_search_texts
+      # @TODO: можно вынести сюда параметры запроса. Пока что лежат в фабрике
+      # request:
+      #   body:
+      #     nmIds: [211795008] # Временный хардкод. @TODO: собирать товары из списка. 
+      #     currentPeriod:
+      #       start: "{{ business_dttm|iso }}"
+      #       end:   "{{ business_dttm|iso }}"
+      #     # topOrderBy # Не указываем, т.к. перебираем несколько вариантов этого параметра в функции fetch_product_search_texts
+      #     orderBy: # отвечает за сортировку результатов, это обязательный параметр, но не влияет 
+      #       field: "openCard"
+      #       mode: "desc"
+      #     limit: 30  # @INFO: если подписка Джем уровеня Продвинутый, то можно собирать ТОП-100.
+      # @TODO: ретраи и лимиты явно некорректные установлены. Вот из документации:
+      # Лимит запросов на один аккаунт продавца:
+      # Период    Лимит	      Интервал	  Всплеск
+      # 1 минута  3 запроса	  20 секунд	  3 запроса
+      retry: { max: 1, backoff_sec: 0.5 }
+      rate_limit: { rps: 3 } # @ASK: на самом деле это кол-во запросов в минуту?
+
+    silver:
+      targets:
+        wb_search_product_stats_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__search_product_stats
+          column_lineage:
+            - wb_search_product_stats
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, nm_id, search_term]
+          silver_indexes:
+            - name: ix_wb_search_product_stats_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # WB ПЛАТНОЕ ХРАНЕНИЕ (ежедневно, submit→poll→download)
+  # ─────────────────────────────────────────────────────────────
+  wb_paid_storage_1d:
+    description: "WB платное хранение (ежедневно)"
+    factory_type: task_poll_download
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      polling:
+        submit:   fetch_paid_storage
+        status:   get_paid_storage_status
+        download: download_paid_storage
+        status_path: "$.data.status"
+        done:   ["DONE", "done"]
+        error:  ["ERROR","FAILED","error","failed"]
+        interval_sec: 10
+        timeout_sec: 1800
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+          date_to:   "{{ business_dttm|iso }}"
+    bronze_indexes:
+      - name: ix_bronze_wb_paid_storage_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_paid_storage_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_paid_storage_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__paid_storage_1d
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, office_id, income_id, barcode, calc_type, pallet_place_code]
+          silver_indexes:
+            - name: ix_wb_paid_storage_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # WB ПЛАТНАЯ ПРИЁМКА (ежедневно, submit→poll→download)
+  # ─────────────────────────────────────────────────────────────
+  wb_paid_acceptances_1d:
+    description: "WB платная приёмка (ежедневно)"
+    factory_type: task_poll_download
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      polling:
+        submit:   fetch_paid_acceptions
+        status:   get_paid_acceptions_status
+        download: download_paid_acceptions
+        status_path: "$.status"
+        done:   ["DONE", "done"]
+        error:  ["ERROR","FAILED","error","failed"]
+        interval_sec: 10
+        timeout_sec: 1800
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+          date_to:   "{{ business_dttm|iso }}"
+    bronze_indexes:
+      - name: ix_bronze_wb_paid_acceptances_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_paid_acceptances_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_paid_acceptances_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_paid_acceptances_1d
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, income_id, nm_id]
+          silver_indexes:
+            - name: ix_wb_paid_acceptances_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # WB warehouse_remains (ежедневно, submit→poll→download)
+  # ─────────────────────────────────────────────────────────────
+  wb_warehouse_remains_1d:
+    description: "WB складские остатки (seller-analytics v1 /warehouse_remains)"
+    factory_type: task_poll_download
+    timezone: Europe/Moscow
+    schedule: "30 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      polling:
+        submit:   request_stocks_report
+        status:   get_stocks_report_status
+        download: download_stocks_report
+        status_path: "$.data.status"
+        done:   ["done", "DONE"]
+        error:  ["ERROR","FAILED","error","failed"]
+        interval_sec: 5
+        timeout_sec: 1800
+
+      request:
+        # ВАЖНО: метод клиента ждёт именованный параметр `params`
+        query:
+          params:
+            groupByBrand:   true
+            groupBySubject: true
+            groupBySa:      true
+            groupByNm:      true
+            groupByBarcode: true
+            groupBySize:    true
+
+    bronze_indexes:
+      - name: ix_bronze_wb_warehouse_remains_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_warehouse_remains_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_warehouse_remains_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_warehouse_remains_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, warehouse_name, barcode ]
+          silver_indexes:
+            - name: ix_wb_warehouse_remains_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+
+  # ─────────────────────────────────────────────────────────────
+  # ДОХОДЫ ПО ПОСТАВЩИКУ (ежедневно, sync_api)
+  # ─────────────────────────────────────────────────────────────
+  wb_supplier_incomes_1d:
+    description: "WB /supplier/incomes (ежедневно)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_suppliers
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+          date_to:   "{{ business_dttm|iso }}"
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 5 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_supplier_incomes_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_supplier_incomes_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_supplier_incomes_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_supplier_incomes_1d
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, income_id, barcode]
+          silver_indexes:
+            - name: ix_wb_supplier_incomes_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # NM REPORT DETAIL (ежедневно, sync_api → фан-аут на 2 silver)
+  # ─────────────────────────────────────────────────────────────
+  wb_nm_report_detail_1d:
+    description: "Воронка продаж (analytics v2 / nm-report/detail)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_sales_funnel
+      request:
+        body:
+          timezone: "Europe/Moscow"
+          period:
+            begin: "{{ business_dttm|iso }} 00:00:00"
+            end:   "{{ business_dttm|iso }} 23:59:59"
+          page: 1
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 3 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_nm_report_detail_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_nm_report_detail_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_buyouts_percent_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_buyouts_percent_1d
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, nm_id]
+          silver_indexes:
+            - name: ix_wb_buyouts_percent_1d_request_uuid
+              columns: [ "request_uuid" ]
+        wb_sales_funnels_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_sales_funnels_1d
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, nm_id]
+          silver_indexes:
+            - name: ix_wb_sales_funnels_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  wb_tariffs_commission_1d:
+    description: "WB базовые комиссии по категориям (ежедневно)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_tariffs_commission_1d_company_biz
+        columns: ["company_id", "business_dttm"]
+      - name: ix_bronze_wb_tariffs_commission_1d_request_uuid
+        columns: ["request_uuid"]
+      - name: ix_bronze_wb_tariffs_commission_1d_company_resp_dttm
+        columns: ["company_id", "response_dttm"]
+
+    api:
+      method: fetch_commission
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 3 }
+
+    silver:
+      targets:
+        wb_commission_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_commission_1d
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, subject_id]
+          column_lineage:
+            - wb_tariffs_commission_1d
+          silver_indexes:
+            - name: ix_wb_commission_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # wb_adv_promotions_1d (sync_api)
+  # ─────────────────────────────────────────────────────────────
+  wb_adv_promotions_1d:
+    description: | 
+      WB: Полный список рекламных кампаний каждого продавца.
+      https://advert-api.wildberries.ru/adv/v1/promotion/count
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 0 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: get_advert_list
+      request: {}
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 4 }
+
+    silver:
+      targets:
+        wb_adv_promotions_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_adv_promotions
+          column_lineage:
+            - wb_adv_promotions
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, advert_id]
+          silver_indexes:
+            - name: ix_wb_adv_promotions_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # ADV_CAMPAIGNS (ежедневно, sync_api)
+  # ─────────────────────────────────────────────────────────────
+  wb_adv_campaigns_1d:
+    description: "WB Adv кампании (ежедневная витрина из /promotion/count)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_ad_info
+      request: {}
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 4 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_adv_campaigns_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_adv_campaigns_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_adv_campaigns_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_adv_campaigns
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, advert_id]
+          silver_indexes:
+            - name: ix_wb_adv_campaigns_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # ADV_KEYWORD_STATS (ежедневно, sync_api, батч по РК)
+  # ─────────────────────────────────────────────────────────────
+  wb_adv_keyword_stats_1d:
+    description: "WB Adv /stats/keywords (ежедневно, батч по РК)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+    build_request_params: dagster_conf.lib.asset_customization.adverts:build_keywords_params
+
+    api:
+      method: fetch_keywords_batch
+      request:
+        # advert_ids ожидаются на стороне фабрики (получение по /promotion/count),
+        # а даты задаём явно
+        query:
+          from: "{{ business_dttm|iso }}"
+          to:   "{{ business_dttm|iso }}"
+      iteration:
+        # Фабрика подтянет список кампаний через get_advert_ids(dateFrom/dateTo) и пойдёт по ним
+        campaigns:
+          source: get_advert_ids
+          query:
+            dateFrom: "{{ business_dttm|iso }}"
+            dateTo:   "{{ business_dttm|iso }}"
+          param: advert_ids           # имя аргумента в методе WB клиента
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 4 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_adv_keyword_stats_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_adv_keyword_stats_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_adv_keyword_stats_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_adv_keyword_stats
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, advert_id, keyword]
+          column_lineage:
+            - wb_adv_keyword_stats
+            - wb_adv_keyword_stats_1d
+          silver_indexes:
+            - name: ix_wb_adv_keyword_stats_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  wb_adv_keyword_stats_1h:
+    description: "WB Adv /stats/keywords (почасово, батч по РК)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "*/30 * * * *"
+
+    partitions:
+      business_dttm: { kind: hourly, start: "2025-01-01T00:00:00" }
+
+    api:
+      method: fetch_keywords_batch
+      request:
+        query:
+          from: "{{ business_dttm|iso }}"
+          to:   "{{ business_dttm|iso }}"
+      iteration:
+        campaigns:
+          source: get_advert_ids
+          query:
+            dateFrom: "{{ business_dttm|iso }}"
+            dateTo:   "{{ business_dttm|iso }}"
+          param: advert_ids
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 4 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_adv_keyword_stats_1h_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_adv_keyword_stats_1h_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_adv_keyword_stats_1h:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_adv_keyword_stats
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [business_dttm, advert_id, keyword]
+          column_lineage:
+            - wb_adv_keyword_stats
+            - wb_adv_keyword_stats_1h
+          silver_indexes:
+            - name: ix_wb_adv_keyword_stats_1h_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # ADV_FULLSTATS (ежедневно, sync_api через /fullstats)
+  # ─────────────────────────────────────────────────────────────
+  wb_adv_fullstats_1d:
+    description: "WB Adv /adv/v3/fullstats → метрики кампаний по дню"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+    build_request_params: dagster_conf.lib.asset_customization.adverts:build_fullstats_params
+
+    api:
+      method: fetch_ad_stats
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 3 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_adv_fullstats_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_adv_fullstats_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_adv_product_stats_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_adv_product_stats_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, advert_id, nm_id, app_type ]
+          column_lineage:
+            - wb_adv_product_stats
+            - wb_adv_product_stats_1d
+          silver_indexes:
+            - name: ix_wb_adv_product_stats_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # FINANCIAL REPORTS (еженедельно, sync_api)
+  # ─────────────────────────────────────────────────────────────
+  wb_fin_reports_1w:
+    description: "WB /supplier/reportDetailByPeriod (недельная выгрузка)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 9 * * 1"
+
+    partitions:
+      business_dttm: { kind: weekly, start: "2025-01-06" }
+
+    api:
+      method: fetch_report_detail_by_period
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+          date_to:   "{{ business_dttm|iso_plus(6d) }}"
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 3 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_fin_reports_1w_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_fin_reports_1w_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_fin_reports_1w:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_fin_reports_1w
+          meta_fields: [request_parameters, business_dttm, company_id, request_uuid, response_dttm]
+          primary_key: [rrd_id] # business_dttm, supplier_oper_name, bonus_type_name, srid
+          column_lineage:
+            - wb_fin_reports_1w
+          silver_indexes:
+            - name: ix_wb_fin_reports_1w_request_uuid
+              columns: [ "request_uuid" ]
+            - name: ix_wb_fin_reports_1w_company_id_nm_id
+              columns: [ "company_id", "business_dttm", "nm_id" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # WB WWW Финансовые отчёты (ежедневно, Selenium ZIP→XLSX)
+  # ─────────────────────────────────────────────────────────────
+  wb_www_fin_report_1d:
+    description: "WB www финансовые отчёты (Selenium ZIP→XLSX → fan-out в 4 silver)"
+    factory_type: selenium
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    selenium:
+      get_report_jobs: "dagster_conf.lib.asset_customization.finreport:get_report_jobs"
+      download_one: "dagster_conf.lib.asset_customization.finreport:download_one"
+
+    bronze_indexes:
+      - name: ix_bronze_wb_www_fin_report_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_www_fin_report_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_fin_adjustments_product_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_fin_adjustments_product_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, srid, supplier_oper_name ]
+          silver_indexes:
+            - name: ix_wb_fin_adjustments_product_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+        wb_fin_adjustments_general_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_fin_adjustments_general_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, srid, supplier_oper_name ]
+          silver_indexes:
+            - name: ix_wb_fin_adjustments_general_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+        wb_sales_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_sales_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, srid, payment_reason ]
+          silver_indexes:
+            - name: ix_wb_sales_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+        wb_logistics_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_logistics_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, srid, logistics_type ]
+          silver_indexes:
+            - name: ix_wb_logistics_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # Заказы
+  # ─────────────────────────────────────────────────────────────
+
+  wb_supplier_orders_1d:
+    description: "WB /supplier/orders (ежедневно)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_orders
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+          flag: 0
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 5 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_supplier_orders_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_supplier_orders_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_supplier_orders_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_supplier_orders_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, srid ]
+          silver_indexes:
+            - name: ix_wb_supplier_orders_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+
+  # ─────────────────────────────────────────────────────────────
+  # Список карточек товаров
+  # ─────────────────────────────────────────────────────────────
+  wb_cards_list_1d:
+    description: "WB список карточек товаров (ежедневно, полная витрина карточек с размерами и ШК)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "0 6 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_sku_cards_all
+      request:
+        query:
+          withPhoto: -1
+          limit: 100
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 3 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_cards_list_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_cards_list_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_mp_skus_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_mp_skus_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, chrt_id ]
+          silver_indexes:
+            - name: ix_wb_mp_skus_1d_request_uuid
+              columns: [ "request_uuid" ]
+          column_lineage:
+            - wb_mp_skus_1d
+
+  # ─────────────────────────────────────────────────────────────
+  # WB /supplier/sales (ежедневно, sync_api)
+  # ─────────────────────────────────────────────────────────────
+  wb_supplier_sales_1d:
+    description: "WB /supplier/sales (ежедневно)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "30 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_supplier_sales
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+          flag: 0
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 1 }   # WB: 1 запрос в минуту на аккаунт
+
+    bronze_indexes:
+      - name: ix_bronze_wb_supplier_sales_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_supplier_sales_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_supplier_sales_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_supplier_sales_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, srid ]
+          silver_indexes:
+            - name: ix_wb_supplier_sales_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  # ─────────────────────────────────────────────────────────────
+  # WB /supplier/stocks (ежедневно, sync_api)
+  # ─────────────────────────────────────────────────────────────
+  wb_supplier_stocks_1d:
+    description: "WB /supplier/stocks (ежедневно)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "30 4 * * *"
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    api:
+      method: fetch_supplier_stocks
+      request:
+        query:
+          date_from: "{{ business_dttm|iso }}"
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 1 }   # WB: 1 запрос в минуту на аккаунт
+
+    bronze_indexes:
+      - name: ix_bronze_wb_supplier_stocks_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_supplier_stocks_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_supplier_stocks_1d:
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_supplier_stocks_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [business_dttm, warehouse_name, barcode, nm_id, tech_size, sc_code, last_change_date]
+          silver_indexes:
+            - name: ix_wb_supplier_stocks_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+  wb_www_text_search_1d:
+    description: "WB WWW text search (ежедневно, 3 страницы на ключ)"
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "15 4 * * *"   # рядом с остальными утренними
+
+    partitions:
+      business_dttm: { kind: daily, start: "2025-01-01" }
+
+    # Собираем список HTTP-запросов (по ключам за «вчера» и страницам)
+    build_request_params: dagster_conf.lib.asset_customization.text_search:build_text_search_requests
+
+    api:
+      method: fetch_www_text_search_page_public
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 6 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_www_text_search_1d_request_uuid
+        columns: [ "request_uuid" ]
+      - name: ix_bronze_wb_www_text_search_1d_company_resp_dttm
+        columns: [ "company_id", "response_dttm" ]
+
+    silver:
+      targets:
+        wb_www_text_search_1d:
+          # Универсальный нормалайзер (работает поверх column_lineage)
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_www_text_search_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, keyword, product_id ]
+          column_lineage:
+            - wb_www_text_search_1d
+          silver_indexes:
+            - name: ix_wb_www_text_search_1d_request_uuid
+              columns: [ "request_uuid" ]
+
+
+  wb_search_results_6h:
+    description: "Результаты поиска. Собираем с сайта WB каждые 6 часов."
+    factory_type: sync_api
+    timezone: Europe/Moscow
+    schedule: "30 21 * * *"   # рядом с остальными утренними
+
+    partitions:
+      business_dttm: { kind: intradaily, start: "2025-10-12" }
+
+    # Собираем список HTTP-запросов (по ключам за «вчера» и страницам)
+    build_request_params: dagster_conf.lib.asset_customization.text_search:build_text_search_requests
+
+    api:
+      method: fetch_www_text_search_page_public
+      retry: { max: 3, backoff_sec: 0.5 }
+      rate_limit: { rps: 6 }
+
+    bronze_indexes:
+      - name: ix_bronze_wb_search_results_6h_business_partitions
+        columns: [ "company_id", "business_dttm" ]
+
+    silver:
+      targets:
+        wb_search_results_6h:
+          # Универсальный нормалайзер (работает поверх column_lineage)
+          normalizer: dagster_conf.lib.wb_universal_normalizer:WbUniversalNormalizer.norm__wb_www_text_search_1d
+          meta_fields: [ request_parameters, business_dttm, company_id, request_uuid, response_dttm ]
+          primary_key: [ business_dttm, keyword, product_id ]
+          column_lineage:
+            - wb_www_text_search_1d
+          silver_indexes:
+            - name: ix_wb_search_results_6h_request_uuid
+              columns: [ "request_uuid" ]
+
+
+
+# ─────────────────────────────────────────────────────────────
+# COLUMN LINEAGE (NOT NULL по умолчанию, если не указано nullable: true)
+# ─────────────────────────────────────────────────────────────
+column_lineage:
+
+  # --- NM report detail (fan-out) ---
+  nm_report_detail__buyouts_percent_1d:
+    - name: date
+      type: date
+      value: "${partition.business_dttm@MSK}"
+
+    - name: nm_id
+      type: int8
+      transform: to_int(nmId)
+
+    - name: buyouts_percent
+      type: float
+      transform: to_float(buyoutsPercent)
+
+  nm_report_detail__sales_funnels_1d:
+    - name: date
+      type: date
+      value: "${partition.business_dttm@MSK}"
+
+    - name: nm_id
+      type: int8
+      transform: to_int(nmId)
+
+    - name: supplier_article
+      type: text
+      transform: supplierArticle
+
+    - name: brand
+      type: text
+      transform: brandName
+
+    - name: subject_id
+      type: int4
+      transform: to_int(subjectID)
+
+    - name: subject_name
+      type: text
+      transform: subjectName
+
+    - name: open_card_count
+      type: int4
+      transform: to_int(openCardCount)
+
+    - name: add_to_cart_count
+      type: int4
+      transform: to_int(addToCartCount)
+
+    - name: orders_count
+      type: int4
+      transform: to_int(ordersCount)
+
+    - name: orders_sum
+      type: float
+      transform: to_float(ordersSum)
+
+    - name: buyouts_count
+      type: int4
+      transform: to_int(buyoutsCount)
+
+    - name: buyouts_sum
+      type: float
+      transform: to_float(buyoutsSum)
+
+    - name: cancel_count
+      type: int4
+      transform: to_int(cancelCount)
+
+    - name: cancel_sum
+      type: float
+      transform: to_float(cancelSum)
+
+    - name: avg_price
+      type: float
+      transform: to_float(avgPrice)
+
+    - name: stocks_mp
+      type: float
+      transform: to_float(stocksMp)
+
+    - name: stocks_wb
+      type: float
+      transform: to_float(stocksWb)
+
+  wb_search_product_stats:
+    - name: search_term
+      type: text
+      transform: text
+
+    - name: nm_id
+      type: int8
+      transform: to_int(nmId)
+
+    - name: subject_name
+      type: text
+      transform: subjectName
+
+    - name: brand_name
+      type: text
+      transform: brandName
+
+    - name: supplier_article
+      type: text
+      transform: vendorCode
+
+    - name: product_name
+      type: text
+      transform: name
+
+    - name: is_card_rated
+      type: bool
+      transform: isCardRated
+
+    - name: rating
+      type: int8
+      transform: to_int(rating)
+
+    - name: feedback_rating
+      type: int8
+      transform: to_int(feedbackRating)
+
+    - name: price_min
+      type: int8
+      transform: to_int(price.minPrice)
+
+    - name: price_max
+      type: int8
+      transform: to_int(price.maxPrice)
+
+    - name: frequency
+      type: int8
+      transform: to_int(frequency.current)
+
+    - name: week_frequency
+      type: int8
+      transform: to_int(weekFrequency)
+
+    - name: median_position
+      type: int8
+      transform: to_int(medianPosition.current)
+
+    - name: avg_position
+      type: int8
+      transform: to_int(avgPosition.current)
+
+    - name: open_card
+      type: int8
+      transform: to_int(openCard.current)
+
+    - name: add_to_cart
+      type: int8
+      transform: to_int(addToCart.current)
+
+    - name: orders
+      type: int8
+      transform: to_int(orders.current)
+
+    - name: open_to_cart
+      type: int8
+      transform: to_int(openToCart.current)
+
+    - name: cart_to_order
+      type: int8
+      transform: to_int(cartToOrder.current)
+
+    - name: visibility
+      type: int8
+      transform: to_int(visibility.current)
+
+  # --- ADV promotions ---
+  wb_adv_promotions:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: advert_id #PK
+      type: int8
+      value: "adverts[].advert_list[].advertId"
+    - name: change_time
+      type: timestamptz
+      value: "adverts[].advert_list[].changeTime"
+    - name: advert_type
+      type: int2
+      value: "adverts[].type"
+    - name: advert_status
+      type: int2
+      value: "adverts[].status"
+
+  # --- ADV campaigns (1d) ---
+  wb_adv_campaigns_1d:   # (источник для silver.wb_adv_campaigns_1d)
+    - name: advert_id #PK
+      type: int8
+      value: "[].advertId"
+    - name: advert_type
+      type: int2
+      value: "[].type"
+    - name: advert_status
+      type: int2
+      value: "[].status"
+    - name: advert_name
+      type: varchar
+      value: "[].name"
+    - name: create_time
+      type: timestamptz
+      value: "[].createTime"
+    - name: change_time
+      type: timestamptz
+      value: "[].changeTime"
+    - name: start_time
+      type: timestamptz
+      value: "[].startTime"
+    - name: end_time
+      type: timestamptz
+      value: "[].endTime"
+    - name: payment_type
+      type: varchar
+      value: "[].paymentType"
+    - name: daily_budget
+      type: int4
+      value: "[].dailyBudget"
+    - name: search_pluse_state
+      type: bool
+      value: "[].searchPluseState"
+
+  # --- ADV keyword stats (base + 1d/1h) ---
+  wb_adv_keyword_stats:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: advert_id #PK
+      type: int8
+      value: "{request_parameters}.advert_id"
+    - name: date
+      type: date
+      value: "keywords[].date"
+    - name: keyword #PK
+      type: varchar
+      value: "keywords[].stats[].keyword"
+
+  wb_adv_keyword_stats_1d:
+    - name: views
+      type: int8
+      value: "keywords[].stats[].views"
+    - name: clicks
+      type: int8
+      value: "keywords[].stats[].clicks"
+    - name: cost
+      type: numeric(10,2)
+      value: "keywords[].stats[].sum"
+    - name: ctr
+      type: float
+      value: "keywords[].stats[].ctr"
+
+  wb_adv_keyword_stats_1h:
+    - name: views
+      type: int8
+      value: "keywords[].stats[].views" # cumsum
+    - name: clicks
+      type: int8
+      value: "keywords[].stats[].clicks" # cumsum
+    - name: cost
+      type: numeric(10,2)
+      value: "keywords[].stats[].sum" # cumsum
+    - name: ctr
+      type: float
+      value: "keywords[].stats[].ctr"
+
+  # --- ADV product positions (1d) ---
+  wb_adv_product_positions_1d:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: advert_id #PK
+      type: int8
+      value: "[].advertId"
+    - name: nm_id #PK
+      type: int8
+      value: "[].boosterStats.[].nm"
+    - name: datetime
+      type: timestamptz
+      value: "[].boosterStats.[].date"
+    - name: avg_position
+      type: int2
+      value: "[].boosterStats.[].avg_position"
+
+  # --- ADV product stats (base + 1d/1h) ---
+  wb_adv_product_stats:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: advert_id #PK
+      type: int8
+      value: "[].advertId"
+    - name: app_type #PK
+      type: int2
+      value: "[].days[].apps[].appType"
+    - name: nm_id #PK
+      type: int8
+      value: "[].days[].apps[].nms[].nmId"
+    - name: date
+      type: timestamptz
+      value: "[].days[].date"
+
+  wb_adv_product_stats_1d:
+    - name: views
+      type: int4
+      value: "[].days[].apps[].nms[].views"
+    - name: clicks
+      type: int4
+      value: "[].days[].apps[].nms[].clicks"
+    - name: carts
+      type: int2
+      value: "[].days[].apps[].nms[].atbs"
+    - name: orders
+      type: int2
+      value: "[].days[].apps[].nms[].orders"
+    - name: items
+      type: int2
+      value: "[].days[].apps[].nms[].shks"
+    - name: revenue
+      type: numeric(10,2)
+      value: "[].days[].apps[].nms[].sum_price"
+    - name: cost
+      type: numeric(10,2)
+      value: "[].days[].apps[].nms[].sum"
+    - name: canceled
+      type: int2
+      value: "[].days[].apps[].nms[].sum"
+
+
+  wb_adv_product_stats_1h:
+    - name: views
+      type: int4
+      value: "[].days[].apps[].nms[].views" # cumsum
+    - name: clicks
+      type: int4
+      value: "[].days[].apps[].nms[].clicks" # cumsum
+    - name: carts
+      type: int2
+      value: "[].days[].apps[].nms[].atbs" # cumsum
+    - name: orders
+      type: int2
+      value: "[].days[].apps[].nms[].orders" # cumsum
+    - name: items
+      type: int2
+      value: "[].days[].apps[].nms[].shks" # cumsum
+    - name: revenue
+      type: numeric(10,2)
+      value: "[].days[].apps[].nms[].sum_price" # cumsum
+    - name: cost
+      type: numeric(10,2)
+      value: "[].days[].apps[].nms[].sum" # cumsum
+    - name: canceled
+      type: int2
+      value: "[].days[].apps[].nms[].sum" # cumsum
+
+  # --- Supplier incomes (1d) ---
+  wb_supplier_incomes_1d:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: income_id #PK
+      type: int8
+      value: "[0].incomeId"
+    - name: number
+      type: varchar(40)
+      value: "[0].number"
+    - name: date
+      type: timestamptz
+      value: "[0].date"
+    - name: last_change_date
+      type: timestamptz
+      value: "[0].lastChangeDate"
+    - name: supplier_article
+      type: varchar
+      value: "[0].supplierArticle"
+    - name: tech_size
+      type: varchar
+      value: "[0].techSize"
+    - name: barcode #PK
+      type: varchar
+      value: "[0].barcode"
+    - name: quantity
+      type: int4
+      value: "[0].quantity"
+    - name: total_price
+      type: real
+      value: "[0].totalPrice"
+    - name: date_close
+      type: timestamptz
+      value: "[0].dateClose"
+    - name: warehouse_name
+      type: varchar
+      value: "[0].warehouseName"
+    - name: status
+      type: varchar
+      value: "[0].status"
+    - name: nm_id
+      type: int8
+      value: "[0].nmId"
+
+  # --- Paid storage (1d, обновлённые поля) ---
+  wb_paid_storage_1d:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: date
+      type: date
+      value: "[0].date"
+    - name: office_id #PK
+      type: int8
+      value: "[0].officeId"
+    - name: warehouse_name
+      type: varchar
+      value: "[0].warehouse"
+    - name: warehouse_coef
+      type: float
+      value: "[0].warehouseCoef"
+    - name: log_warehouse_coef
+      type: float
+      value: "[0].logWarehouseCoef"
+    - name: income_id #PK
+      type: int8
+      value: "[0].giId"
+    - name: chrt_id
+      type: int8
+      value: "[0].chrtId"
+    - name: tech_size
+      type: varchar
+      value: "[0].size"
+    - name: barcode #PK
+      type: varchar
+      value: "[0].barcode"
+    - name: subject
+      type: varchar
+      value: "[0].subject"
+    - name: brand
+      type: varchar
+      value: "[0].brand"
+    - name: supplier_article
+      type: varchar
+      value: "[0].vendorCode"
+    - name: nm_id
+      type: int8
+      value: "[0].nmId"
+    - name: volume
+      type: float
+      value: "[0].volume"
+    - name: calc_type #PK
+      type: varchar
+      value: "[0].calcType"
+    - name: warehouse_price
+      type: numeric(10,2)
+      value: "[0].warehousePrice"
+    - name: barcodes_count
+      type: int8
+      value: "[0].barcodesCount"
+    - name: pallet_place_code #PK
+      type: int8
+      value: "[0].palletPlaceCode"
+    - name: pallet_count
+      type: float
+      value: "[0].palletCount"
+    - name: original_date
+      type: date
+      value: "[0].originalDate"
+      nullable: true
+    - name: loyalty_discount
+      type: float
+      value: "[0].loyaltyDiscount"
+    - name: tariff_fix_date
+      type: date
+      value: "[0].tariffFixDate"
+      nullable: true
+
+    - name: tariff_lower_date
+      type: date
+      value: "[0].tariffLowerDate"
+      nullable: true
+
+  # --- Paid acceptances (1d) ---
+  wb_paid_acceptances_1d:
+    - name: quantity
+      type: int4
+      value: "[0].count"
+    - name: gi_create_date
+      type: date
+      value: "[0].giCreateDate"
+    - name: shk_create_date
+      type: date
+      value: "[0].shkCreateDate"
+    - name: income_id #PK
+      type: int8
+      value: "[0].incomeId"
+    - name: nm_id #PK
+      type: int8
+      value: "[0].nmID"
+    - name: total_cost
+      type: numeric(10,2)
+      value: "[0].total"
+    - name: subject_name
+      type: varchar
+      value: "[0].subjectName"
+
+  # --- Базовые тарифы комиссий маркетплейса (1d) ---
+  wb_tariffs_commission_1d:
+  # bronze.wb_tariffs_commission_1d
+    - name: subject_id #PK
+      type: int8
+      value: "report[].subjectID"
+    - name: subject_name
+      type: varchar
+      value: "report[].subjectName"
+    - name: category_id
+      type: int8
+      value: "report[].parentID"
+    - name: category_name
+      type: varchar
+      value: "report[].parentName"
+    - name: kgvp_paid_storage
+      type: numeric(6,4)
+      value: "report[].paidStorageKgvp"
+    - name: kgvp_marketplace
+      type: numeric(6,4)
+      value: "report[].kgvpMarketplace"
+    - name: kgvp_booking
+      type: numeric(6,4)
+      value: "report[].kgvpBooking"
+    - name: kgvp_pickup
+      type: numeric(6,4)
+      value: "report[].kgvpPickup"
+    - name: kgvp_supplier
+      type: numeric(6,4)
+      value: "report[].kgvpSupplier"
+
+  # --- Еженедельный финансовый отчет по продажам из API (1w) ---
+  wb_fin_reports_1w:
+  # bronze.wb_fin_reports_1w
+    - name: business_dttm
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: realizationreport_id
+      type: int8
+      value: "realizationreport_id"
+    - name: date_from
+      type: date
+      value: "date_from"
+    - name: date_to
+      type: date
+      value: "date_to"
+    - name: create_dt
+      type: date
+      value: "create_dt"
+    - name: currency_name
+      type: varchar
+      value: "currency_name"
+      nullable: true
+    - name: suppliercontract_code
+      type: text
+      value: "suppliercontract_code"
+      nullable: true
+    - name: rrd_id                        # UNIQUE OVER ALL PARTITIONS
+      type: int8
+      value: "rrd_id"
+    - name: gi_id
+      type: int8
+      value: "gi_id"
+    - name: dlv_prc
+      type: numeric(10,2)
+      value: "dlv_prc"
+    - name: fix_tariff_date_from
+      type: date
+      value: "fix_tariff_date_from"
+      nullable: true
+    - name: fix_tariff_date_to
+      type: date
+      value: "fix_tariff_date_to"
+      nullable: true
+    - name: subject_name
+      type: varchar
+      value: "subject_name"
+      nullable: true
+    - name: nm_id
+      type: int8
+      value: "nm_id"
+    - name: brand_name
+      type: varchar
+      value: "brand_name"
+      nullable: true
+    - name: supplier_article
+      type: varchar
+      value: "sa_name"
+      nullable: true
+    - name: tech_size
+      type: varchar
+      value: "ts_name"
+      nullable: true
+    - name: barcode
+      type: varchar
+      value: "barcode"
+      nullable: true
+    - name: doc_type_name
+      type: varchar
+      value: "doc_type_name"
+      nullable: true
+    - name: quantity
+      type: int8
+      value: "quantity"
+    - name: retail_price
+      type: numeric(10,2)
+      value: "retail_price"
+    - name: retail_amount
+      type: numeric(10,2)
+      value: "retail_amount"
+    - name: sale_percent
+      type: int8
+      value: "sale_percent"
+    - name: commission_percent
+      type: numeric(10,2)
+      value: "commission_percent"
+    - name: warehouse_name
+      type: varchar
+      value: "office_name"
+      nullable: true
+    - name: supplier_oper_name
+      type: varchar
+      value: "supplier_oper_name"
+      nullable: true
+    - name: order_dt
+      type: timestamptz
+      value: "order_dt"
+      nullable: true
+    - name: sale_dt
+      type: timestamptz
+      value: "sale_dt"
+      nullable: true
+    - name: rr_dt
+      type: date
+      value: "rr_dt"
+      nullable: true
+    - name: shk_id
+      type: int8
+      value: "shk_id"
+    - name: retail_price_withdisc_rub
+      type: numeric(10,2)
+      value: "retail_price_withdisc_rub"
+    - name: delivery_amount
+      type: int8
+      value: "delivery_amount"
+    - name: return_amount
+      type: int8
+      value: "return_amount"
+    - name: delivery_rub
+      type: numeric(10,2)
+      value: "delivery_rub"
+    - name: gi_box_type_name
+      type: varchar
+      value: "gi_box_type_name"
+      nullable: true
+    - name: product_discount_for_report
+      type: numeric(10,2)
+      value: "product_discount_for_report"
+    - name: supplier_promo
+      type: numeric(10,2)
+      value: "supplier_promo"
+    - name: ppvz_spp_prc
+      type: numeric(10,2)
+      value: "ppvz_spp_prc"
+    - name: ppvz_kvw_prc_base
+      type: numeric(10,2)
+      value: "ppvz_kvw_prc_base"
+    - name: ppvz_kvw_prc
+      type: numeric(10,2)
+      value: "ppvz_kvw_prc"
+    - name: sup_rating_prc_up
+      type: numeric(10,2)
+      value: "sup_rating_prc_up"
+    - name: is_kgvp_v2
+      type: numeric(10,2)
+      value: "is_kgvp_v2"
+    - name: ppvz_sales_commission
+      type: numeric(10,2)
+      value: "ppvz_sales_commission"
+    - name: ppvz_for_pay
+      type: numeric(10,2)
+      value: "ppvz_for_pay"
+    - name: ppvz_reward
+      type: numeric(10,2)
+      value: "ppvz_reward"
+    - name: acquiring_fee
+      type: numeric(10,2)
+      value: "acquiring_fee"
+    - name: acquiring_percent
+      type: numeric(10,2)
+      value: "acquiring_percent"
+    - name: payment_processing
+      type: varchar
+      value: "payment_processing"
+      nullable: true
+    - name: acquiring_bank
+      type: varchar
+      value: "acquiring_bank"
+      nullable: true
+    - name: ppvz_vw
+      type: numeric(10,2)
+      value: "ppvz_vw"
+    - name: ppvz_vw_nds
+      type: numeric(10,2)
+      value: "ppvz_vw_nds"
+    - name: ppvz_office_name
+      type: varchar
+      value: "ppvz_office_name"
+      nullable: true
+    - name: ppvz_office_id
+      type: int8
+      value: "ppvz_office_id"
+    - name: ppvz_supplier_id
+      type: int8
+      value: "ppvz_supplier_id"
+    - name: ppvz_supplier_name
+      type: varchar
+      value: "ppvz_supplier_name"
+      nullable: true
+    - name: ppvz_inn
+      type: varchar
+      value: "ppvz_inn"
+      nullable: true
+    - name: declaration_number
+      type: varchar
+      value: "declaration_number"
+      nullable: true
+    - name: bonus_type_name
+      type: varchar
+      value: "bonus_type_name"
+      nullable: true
+    - name: sticker_id
+      type: varchar
+      value: "sticker_id"
+      nullable: true
+    - name: site_country
+      type: varchar
+      value: "site_country"
+      nullable: true
+    - name: srv_dbs
+      type: bool
+      value: "srv_dbs"
+      nullable: true
+    - name: penalty
+      type: numeric(10,2)
+      value: "penalty"
+    - name: additional_payment
+      type: numeric(10,2)
+      value: "additional_payment"
+    - name: rebill_logistic_cost
+      type: numeric(10,2)
+      value: "rebill_logistic_cost"
+    - name: rebill_logistic_org
+      type: varchar
+      value: "rebill_logistic_org"
+      nullable: true
+    - name: storage_fee
+      type: numeric(10,2)
+      value: "storage_fee"
+    - name: deduction
+      type: numeric(10,2)
+      value: "deduction"
+    - name: acceptance
+      type: numeric(10,2)
+      value: "acceptance"
+    - name: assembly_id
+      type: int8
+      value: "assembly_id"
+    - name: kiz
+      type: varchar
+      value: "kiz"
+      nullable: true
+    - name: srid
+      type: varchar
+      value: "srid"
+      nullable: true
+    - name: report_type
+      type: int8
+      value: "report_type"
+    - name: is_legal_entity
+      type: bool
+      value: "is_legal_entity"
+      nullable: true
+    - name: trbx_id
+      type: varchar
+      value: "trbx_id"
+      nullable: true
+    - name: installment_cofinancing_amount
+      type: numeric(10,2)
+      value: "installment_cofinancing_amount"
+    - name: wibes_wb_discount_percent
+      type: numeric(10,2)
+      value: "wibes_wb_discount_percent"
+    - name: cashback_amount
+      type: numeric(10,2)
+      value: "cashback_amount"
+    - name: cashback_discount
+      type: numeric(10,2)
+      value: "cashback_discount"
+    - name: order_uid
+      type: varchar
+      value: "order_uid"
+      nullable: true
+
+  # ── Adjustments by product (детализация по товарам)
+  wb_fin_adjustments_product_1d:
+    - name: business_dttm
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: company_id
+      type: int8
+      value: "{company_id}"
+    - name: request_uuid
+      type: uuid
+      value: "{request_uuid}"
+      nullable: true
+    - name: response_dttm
+      type: timestamptz
+      value: "{response_dttm}"
+      nullable: true
+
+    - name: income_id
+      type: int8
+      value: "Номер поставки"
+    - name: subject
+      type: varchar
+      value: "Предмет"
+    - name: nomenclature_code
+      type: int8
+      value: "Код номенклатуры"
+    - name: brand_name
+      type: varchar
+      value: "Бренд"
+    - name: suplier_article
+      type: varchar
+      value: "Артикул поставщика"
+    - name: name
+      type: varchar
+      value: "Название"
+    - name: tech_size
+      type: varchar
+      value: "Размер"
+    - name: barcode
+      type: varchar
+      value: "Баркод"
+    - name: doc_type_name
+      type: varchar
+      value: "Тип документа"
+      nullable: true
+    - name: supplier_oper_name   # PK часть
+      type: varchar
+      value: "Обоснование для оплаты"
+    - name: order_date
+      type: date
+      value: "Дата заказа покупателем"
+      nullable: true
+    - name: sale_date
+      type: date
+      value: "Дата продажи"
+      nullable: true
+    - name: penalty
+      type: numeric(10,2)
+      value: "Общая сумма штрафов"
+      nullable: true
+    - name: bonus_type_name
+      type: varchar
+      value: "Виды логистики, штрафов и доплат"
+      nullable: true
+    - name: office_id
+      type: int8
+      value: "Номер офиса"
+      nullable: true
+    - name: warehouse_name
+      type: varchar
+      value: "Склад"
+      nullable: true
+    - name: country
+      type: varchar
+      value: "Страна"
+      nullable: true
+    - name: box_type
+      type: varchar
+      value: "Тип коробов"
+      nullable: true
+    - name: shk_id
+      type: int8
+      value: "ШК"
+      nullable: true
+    - name: srid                 # PK часть
+      type: varchar
+      value: "Srid"
+    - name: seller_payout
+      type: numeric(10,2)
+      value: "К перечислению Продавцу за реализованный Товар"
+      nullable: true
+    - name: additional_payment
+      type: numeric(10,2)
+      value: "Корректировка Вознаграждения Вайлдберриз (ВВ)"
+      nullable: true
+    - name: cashback_amount
+      type: numeric(10,2)
+      value: "Сумма удержанная за начисленные баллы программы лояльности"
+      nullable: true
+    - name: cashback_discount
+      type: numeric(10,2)
+      value: "Компенсация скидки по программе лояльности"
+      nullable: true
+
+  # ── Adjustments general (агрегированные удержания/штрафы/компенсации)
+  wb_fin_adjustments_general_1d:
+    - name: business_dttm
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: company_id
+      type: int8
+      value: "{company_id}"
+    - name: request_uuid
+      type: uuid
+      value: "{request_uuid}"
+      nullable: true
+    - name: response_dttm
+      type: timestamptz
+      value: "{response_dttm}"
+      nullable: true
+
+    - name: income_id
+      type: int8
+      value: "Номер поставки"
+      nullable: true
+    - name: subject
+      type: varchar
+      value: "Предмет"
+      nullable: true
+    - name: nm_id
+      type: int8
+      value: "Код номенклатуры"
+      nullable: true
+    - name: brand_name
+      type: varchar
+      value: "Бренд"
+      nullable: true
+    - name: suplier_article
+      type: varchar
+      value: "Артикул поставщика"
+      nullable: true
+    - name: name
+      type: varchar
+      value: "Название"
+      nullable: true
+    - name: tech_size
+      type: varchar
+      value: "Размер"
+      nullable: true
+    - name: barcode
+      type: varchar
+      value: "Баркод"
+      nullable: true
+    - name: doc_type_name
+      type: varchar
+      value: "Тип документа"
+      nullable: true
+    - name: supplier_oper_name   # PK часть
+      type: varchar
+      value: "Обоснование для оплаты"
+    - name: order_date
+      type: date
+      value: "Дата заказа покупателем"
+      nullable: true
+    - name: sale_date
+      type: date
+      value: "Дата продажи"
+      nullable: true
+    - name: penalty
+      type: numeric(10,2)
+      value: "Общая сумма штрафов"
+      nullable: true
+    - name: bonus_type_name
+      type: varchar
+      value: "Виды логистики, штрафов и доплат"
+      nullable: true
+    - name: office_id
+      type: int8
+      value: "Номер офиса"
+      nullable: true
+    - name: warehouse_name
+      type: varchar
+      value: "Склад"
+      nullable: true
+    - name: country
+      type: varchar
+      value: "Страна"
+      nullable: true
+    - name: box_type
+      type: varchar
+      value: "Тип коробов"
+      nullable: true
+    - name: shk_id
+      type: int8
+      value: "ШК"
+      nullable: true
+    - name: srid                 # PK часть
+      type: varchar
+      value: "Srid"
+      nullable: true
+    - name: deduction
+      type: numeric(10,2)
+      value: "Удержания"
+      nullable: true
+
+  # ── Sales (продажи/возвраты)
+  wb_sales_1d:
+    - name: business_dttm        # PK часть
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: company_id
+      type: int8
+      value: "{company_id}"
+    - name: request_uuid
+      type: uuid
+      value: "{request_uuid}"
+      nullable: true
+    - name: response_dttm
+      type: timestamptz
+      value: "{response_dttm}"
+      nullable: true
+
+    - name: income_id
+      type: int8
+      value: "Номер поставки"
+      nullable: true
+    - name: subject
+      type: varchar
+      value: "Предмет"
+      nullable: true
+    - name: nm_id
+      type: int8
+      value: "Код номенклатуры"
+      nullable: true
+    - name: brand_name
+      type: varchar
+      value: "Бренд"
+      nullable: true
+    - name: supplier_article
+      type: varchar
+      value: "Артикул поставщика"
+      nullable: true
+    - name: name
+      type: varchar
+      value: "Название"
+      nullable: true
+    - name: tech_size
+      type: varchar
+      value: "Размер"
+      nullable: true
+    - name: barcode
+      type: varchar
+      value: "Баркод"
+      nullable: true
+    - name: payment_reason       # PK часть (Продажа/Возврат)
+      type: varchar
+      value: "Обоснование для оплаты"
+    - name: order_date
+      type: date
+      value: "Дата заказа покупателем"
+      nullable: true
+    - name: sale_date
+      type: date
+      value: "Дата продажи"
+      nullable: true
+    - name: quantity
+      type: int4
+      value: "Кол-во"
+      nullable: true
+    - name: price
+      type: numeric
+      value: "Цена розничная"
+      nullable: true
+    - name: wb_realization_price
+      type: numeric
+      value: "Вайлдберриз реализовал Товар (Пр)"
+      nullable: true
+    - name: spp
+      type: numeric
+      value: "Скидка постоянного Покупателя (СПП), %"
+      nullable: true
+    - name: commision_percent
+      type: numeric
+      value: "Размер кВВ, %"
+      nullable: true
+    - name: price_with_discount
+      type: numeric
+      value: "Цена розничная с учетом согласованной скидки"
+      nullable: true
+    - name: acquiring_amount
+      type: numeric
+      value: "Эквайринг/Комиссии за организацию платежей"
+      nullable: true
+    - name: acquiring_percent
+      type: numeric
+      value: "Размер комиссии за эквайринг/Комиссии за организацию платежей, %"
+      nullable: true
+    - name: acquiring_bank
+      type: varchar
+      value: "Наименование банка-эквайера"
+      nullable: true
+    - name: warehouse_name
+      type: varchar
+      value: "Склад"
+      nullable: true
+    - name: country
+      type: varchar
+      value: "Страна"
+      nullable: true
+    - name: seller_payout
+      type: numeric
+      value: "К перечислению Продавцу за реализованный Товар"
+      nullable: true
+    - name: srid                 # PK
+      type: varchar
+      value: "Srid"
+
+  # ── Logistics (логистические операции)
+  wb_logistics_1d:
+    - name: business_dttm        # PK
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: company_id
+      type: int8
+      value: "{company_id}"
+    - name: request_uuid
+      type: uuid
+      value: "{request_uuid}"
+      nullable: true
+    - name: response_dttm
+      type: timestamptz
+      value: "{response_dttm}"
+      nullable: true
+
+    - name: income_id
+      type: int8
+      value: "Номер поставки"
+      nullable: true
+    - name: nm_id
+      type: int8
+      value: "Код номенклатуры"
+      nullable: true
+    - name: brand_name
+      type: varchar
+      value: "Бренд"
+      nullable: true
+    - name: supplier_article
+      type: varchar
+      value: "Артикул поставщика"
+      nullable: true
+    - name: name
+      type: varchar
+      value: "Название"
+      nullable: true
+    - name: tech_size
+      type: varchar
+      value: "Размер"
+      nullable: true
+    - name: barcode
+      type: varchar
+      value: "Баркод"
+      nullable: true
+    - name: payment_reason
+      type: varchar
+      value: "Обоснование для оплаты"
+    - name: order_date
+      type: date
+      value: "Дата заказа покупателем"
+      nullable: true
+    - name: sale_date
+      type: date
+      value: "Дата продажи"
+      nullable: true
+    - name: delivery_quantity
+      type: int4
+      value: "Кол-во"
+      nullable: true
+    - name: logistic_cost
+      type: numeric
+      value: "Услуги по доставке товара покупателю"
+      nullable: true
+    - name: logistics_type       # PK
+      type: varchar
+      value: "Виды логистики, штрафов и корректировок ВВ"
+    - name: warehouse_name
+      type: varchar
+      value: "Склад"
+      nullable: true
+    - name: country
+      type: varchar
+      value: "Страна"
+      nullable: true
+    - name: srid                 # PK
+      type: varchar
+      value: "Srid"
+
+  # Заказы
+
+  wb_supplier_orders_1d:
+    - name: g_number
+      type: varchar
+      value: "[0].gNumber"
+    - name: srid # PK-part
+      type: varchar
+      value: "[0].srid"
+    - name: date
+      type: timestamp
+      value: "[0].date"
+    - name: last_change_date
+      type: timestamp
+      value: "[0].lastChangeDate"
+    - name: warehouse_name
+      type: varchar
+      value: "[0].warehouseName"
+    - name: warehouse_type
+      type: varchar
+      value: "[0].warehouseType"
+    - name: country_name
+      type: varchar
+      value: "[0].countryName"
+    - name: oblast_okrug_name
+      type: varchar
+      value: "[0].oblastOkrugName"
+    - name: region_name
+      type: varchar
+      value: "[0].regionName"
+    - name: supplier_article
+      type: varchar
+      value: "[0].supplierArticle"
+    - name: nm_id
+      type: int8
+      value: "[0].nmId"
+    - name: barcode
+      type: varchar
+      value: "[0].barcode"
+    - name: category_name
+      type: varchar
+      value: "[0].category"
+    - name: subject_name
+      type: varchar
+      value: "[0].subject"
+    - name: brand_name
+      type: varchar
+      value: "[0].brand"
+    - name: tech_size
+      type: varchar
+      value: "[0].techSize"
+    - name: income_id
+      type: int8
+      value: "[0].incomeID"
+    - name: is_supply
+      type: bool
+      value: "[0].isSupply"
+    - name: is_realization
+      type: bool
+      value: "[0].isRealization"
+    - name: total_price
+      type: real
+      value: "[0].totalPrice"
+    - name: discount_percent
+      type: real
+      value: "[0].discountPercent"
+    - name: spp
+      type: int4
+      value: "[0].spp"
+    - name: finished_price
+      type: real
+      value: "[0].finishedPrice"
+    - name: price_with_discount
+      type: real
+      value: "[0].priceWithDisc"
+    - name: is_cansel
+      type: bool
+      value: "[0].isCansel"
+    - name: cansel_date
+      type: timestamp
+      value: "[0].cancelDate"
+    - name: stiker
+      type: varchar
+      value: "[0].sticker"
+
+  wb_mp_skus_1d:
+    - name: business_dttm  # PK часть
+      type: timestamptz
+      value: "{business_dttm}"
+
+    - name: nm_id
+      type: int8
+      transform: to_int(nmID)
+
+    - name: imt_id
+      type: int8
+      transform: to_int(imtID)
+
+    - name: subject_id
+      type: int4
+      transform: to_int(subjectID)
+
+    - name: subject_name
+      type: varchar
+      value: "subjectName"
+
+    - name: supplier_article
+      type: varchar
+      value: "supplierArticle"
+
+    - name: brand
+      type: varchar
+      value: "brand"
+
+    - name: title
+      type: varchar
+      value: "title"
+
+    - name: description
+      type: text
+      # берём из attributes['Описание'] в нормалайзере; в модели — просто тип
+      nullable: true
+
+    - name: length
+      type: int4
+      # dimensions.length
+      nullable: true
+
+    - name: width
+      type: int4
+      # dimensions.width
+      nullable: true
+
+    - name: height
+      type: int4
+      # dimensions.height
+      nullable: true
+
+    - name: weight
+      type: int4
+      # при наличии в ответе; иначе null
+      nullable: true
+
+    - name: chrt_id        # PK часть (размер/черт)
+      type: int8
+      transform: to_int(chrtId)
+
+    - name: tech_size
+      type: varchar
+      value: "techSize"
+      nullable: true
+
+    - name: barcode
+      type: varchar
+      value: "barcode"
+      nullable: true
+
+  # --- WB /supplier/sales (root массив) ---
+  wb_supplier_sales_1d:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+
+    - name: srid #PK
+      type: text
+      value: "[].srid"
+
+    - name: date
+      type: timestamptz
+      value: "[].date"
+
+    - name: last_change_date
+      type: timestamptz
+      value: "[].lastChangeDate"
+
+    - name: warehouse_name
+      type: text
+      value: "[].warehouseName"
+
+    - name: warehouse_type
+      type: text
+      value: "[].warehouseType"
+
+    - name: country_name
+      type: text
+      value: "[].countryName"
+
+    - name: oblast_okrug_name
+      type: text
+      value: "[].oblastOkrugName"
+
+    - name: region_name
+      type: text
+      value: "[].regionName"
+
+    - name: supplier_article
+      type: text
+      value: "[].supplierArticle"
+
+    - name: nm_id
+      type: int8
+      value: "[].nmId"
+
+    - name: barcode
+      type: text
+      value: "[].barcode"
+
+    - name: category
+      type: text
+      value: "[].category"
+
+    - name: subject
+      type: text
+      value: "[].subject"
+
+    - name: brand
+      type: text
+      value: "[].brand"
+
+    - name: tech_size
+      type: text
+      value: "[].techSize"
+
+    - name: income_id
+      type: int8
+      value: "[].incomeID"
+
+    - name: is_supply
+      type: bool
+      value: "[].isSupply"
+
+    - name: is_realization
+      type: bool
+      value: "[].isRealization"
+
+    - name: total_price
+      type: numeric(12,2)
+      value: "[].totalPrice"
+
+    - name: discount_percent
+      type: int2
+      value: "[].discountPercent"
+
+    - name: spp
+      type: int2
+      value: "[].spp"
+
+    - name: payment_sale_amount
+      type: numeric(12,2)
+      value: "[].paymentSaleAmount"
+
+    - name: for_pay
+      type: numeric(12,2)
+      value: "[].forPay"
+
+    - name: finished_price
+      type: numeric(12,2)
+      value: "[].finishedPrice"
+
+    - name: price_with_disc
+      type: numeric(12,2)
+      value: "[].priceWithDisc"
+
+    - name: sale_id
+      type: text
+      value: "[].saleID"
+
+    - name: sticker
+      type: text
+      value: "[].sticker"
+
+    - name: g_number
+      type: text
+      value: "[].gNumber"
+
+
+  # --- WB /supplier/stocks (root массив) ---
+  wb_supplier_stocks_1d:
+    - name: business_dttm #PK
+      type: timestamptz
+      value: "{business_dttm}"
+
+    - name: warehouse_name #PK
+      type: text
+      value: "[].warehouseName"
+
+    - name: barcode #PK
+      type: text
+      value: "[].barcode"
+
+    - name: nm_id #PK
+      type: int8
+      value: "[].nmId"
+
+    - name: last_change_date
+      type: timestamptz
+      value: "[].lastChangeDate"
+
+    - name: supplier_article
+      type: text
+      value: "[].supplierArticle"
+
+    - name: quantity
+      type: int4
+      value: "[].quantity"
+
+    - name: in_way_to_client
+      type: int4
+      value: "[].inWayToClient"
+
+    - name: in_way_from_client
+      type: int4
+      value: "[].inWayFromClient"
+
+    - name: quantity_full
+      type: int4
+      value: "[].quantityFull"
+
+    - name: category
+      type: text
+      value: "[].category"
+
+    - name: subject
+      type: text
+      value: "[].subject"
+
+    - name: brand
+      type: text
+      value: "[].brand"
+
+    - name: tech_size
+      type: text
+      value: "[].techSize"
+
+    - name: price
+      type: numeric(12,2)
+      value: "[].Price"
+
+    - name: discount
+      type: numeric(12,2)
+      value: "[].Discount"
+
+    - name: is_supply
+      type: bool
+      value: "[].isSupply"
+
+    - name: is_realization
+      type: bool
+      value: "[].isRealization"
+
+    - name: sc_code
+      type: text
+      value: "[].SCCode"
+
+  wb_warehouse_remains_1d:
+    - name: business_dttm        # PK
+      type: timestamptz
+      value: "{business_dttm}"
+
+    - name: brand_name
+      type: varchar
+      value: "[].brand"
+
+    - name: subject_name
+      type: varchar
+      value: "[].subjectName"
+
+    - name: supplier_article
+      type: varchar
+      value: "[].vendorCode"
+
+    - name: nm_id
+      type: int8
+      value: "[].nmId"
+
+    - name: barcode              # PK
+      type: varchar
+      value: "[].barcode"
+
+    - name: tech_size
+      type: varchar
+      value: "[].techSize"
+
+    - name: volume
+      type: float
+      value: "[].volume"
+
+    # разворачиваем вложенный массив warehouses[] в строки
+    - name: warehouse_name       # PK
+      type: varchar
+      value: "[].warehouses.[].warehouseName"
+
+    - name: quantity
+      type: int8
+      value: "[].warehouses.[].quantity"
+
+
+  wb_www_text_search_1d:
+    # ключ и дата
+    - name: business_dttm
+      type: timestamptz
+      value: "{business_dttm}"
+    - name: keyword
+      type: varchar
+      value: "metadata.original"
+
+    # metadata.*
+    - name: catalog_type
+      type: varchar
+      value: "metadata.catalog_type"
+    - name: catalog_value
+      type: varchar
+      value: "metadata.catalog_value"
+    - name: normquery
+      type: varchar
+      value: "metadata.normquery"
+
+    # metadata.search_result[] → в строки
+    - name: search_result_name
+      type: varchar
+      value: "metadata.search_result.[].name"
+    - name: search_result_rmi
+      type: varchar
+      value: "metadata.search_result.[].rmi"
+    - name: search_result_title
+      type: varchar
+      value: "metadata.search_result.[].title"
+    - name: search_result_rs
+      type: int4
+      value: "metadata.search_result.[].rs"
+    - name: search_result_qv
+      type: varchar
+      value: "metadata.search_result.[].qv"
+
+    # products[] (root массив) → в строки
+    - name: product_id
+      type: int4
+      value: "products.[].id"
+    - name: product_time_1
+      type: int4
+      value: "products.[].time_1"
+    - name: product_time_2
+      type: int4
+      value: "products.[].time_2"
+    - name: product_wh
+      type: int4
+      value: "products.[].wh"
+    - name: product_d_type
+      type: int8
+      value: "products.[].d_type"
+    - name: product_dist
+      type: int4
+      value: "products.[].dist"
+    - name: product_root
+      type: int4
+      value: "products.[].root"
+    - name: product_kind_id
+      type: int4
+      value: "products.[].kind_id"
+    - name: product_brand
+      type: varchar
+      value: "products.[].brand"
+    - name: product_brand_id
+      type: int4
+      value: "products.[].brand_id"
+    - name: product_site_brand_id
+      type: int4
+      value: "products.[].site_brand_id"
+
+    # products[].colors[] (берём разворот по цветам; если нужен только первый — подскажешь)
+    - name: product_colors_id
+      type: int4
+      value: "products.[].colors.[].id"
+    - name: product_colors_name
+      type: varchar
+      value: "products.[].colors.[].name"
+
+    - name: product_subject_id
+      type: int4
+      value: "products.[].subject_id"
+    - name: product_subject_parent_id
+      type: int4
+      value: "products.[].subject_parent_id"
+
+    - name: product_name
+      type: varchar
+      value: "products.[].name"
+    - name: product_entity
+      type: varchar
+      value: "products.[].entity"
+    - name: product_match_id
+      type: int4
+      value: "products.[].match_id"
+
+    - name: product_supplier
+      type: varchar
+      value: "products.[].supplier"
+    - name: product_supplier_id
+      type: int4
+      value: "products.[].supplier_id"
+    - name: product_supplier_rating
+      type: float
+      value: "products.[].supplier_rating"
+    - name: product_supplier_flags
+      type: int4
+      value: "products.[].supplier_flags"
+    - name: product_pics
+      type: int4
+      value: "products.[].pics"
+
+    - name: product_rating
+      type: int4
+      value: "products.[].rating"
+    - name: product_review_rating
+      type: float
+      value: "products.[].review_rating"
+    - name: product_nm_review_rating
+      type: float
+      value: "products.[].nm_review_rating"
+    - name: product_feedbacks
+      type: int4
+      value: "products.[].feedbacks"
+    - name: product_nm_feedbacks
+      type: int4
+      value: "products.[].nm_feedbacks"
+    - name: product_panel_promo_id
+      type: int4
+      value: "products.[].panel_promo_id"
+      nullable: true
+    - name: product_volume
+      type: int4
+      value: "products.[].volume"
+    - name: product_view_flags
+      type: int4
+      value: "products.[].view_flags"
+
+    # products[].sizes[] (разварот по размерам)
+    - name: product_sizes_name
+      type: varchar
+      value: "products.[].sizes.[].name"
+    - name: product_sizes_orig_name
+      type: varchar
+      value: "products.[].sizes.[].orig_name"
+    - name: product_sizes_rank
+      type: int4
+      value: "products.[].sizes.[].rank"
+    - name: product_sizes_option_id
+      type: int4
+      value: "products.[].sizes.[].option_id"
+    - name: product_sizes_wh
+      type: int4
+      value: "products.[].sizes.[].wh"
+    - name: product_sizes_time_1
+      type: int4
+      value: "products.[].sizes.[].time_1"
+    - name: product_sizes_time_2
+      type: int4
+      value: "products.[].sizes.[].time_2"
+    - name: product_sizes_d_type
+      type: int8
+      value: "products.[].sizes.[].d_type"
+
+    - name: product_sizes_price_basic
+      type: int4
+      value: "products.[].sizes.[].price.basic"
+    - name: product_sizes_price_product
+      type: int4
+      value: "products.[].sizes.[].price.product"
+    - name: product_sizes_price_logistics
+      type: int4
+      value: "products.[].sizes.[].price.logistics"
+    - name: product_sizes_price_return
+      type: int4
+      value: "products.[].sizes.[].price.return"
+
+    - name: product_sizes_sale_conditions
+      type: int4
+      value: "products.[].sizes.[].sale_conditions"
+    - name: product_sizes_payload
+      type: text
+      value: "products.[].sizes.[].payload"
+
+    - name: product_total_quantity
+      type: int4
+      value: "products.[].total_quantity"
+
+    # products[].log.*
+    - name: product_log_cpm
+      type: int4
+      value: "products.[].log.cpm"
+      nullable: true
+    - name: product_log_promotion
+      type: int4
+      value: "products.[].log.promotion"
+      nullable: true
+    - name: product_log_promo_position
+      type: int4
+      value: "products.[].log.promo_position"
+      nullable: true
+    - name: product_log_position
+      type: int4
+      value: "products.[].log.position"
+      nullable: true
+    - name: product_log_advert_id
+      type: int4
+      value: "products.[].log.advert_id"
+      nullable: true
+    - name: product_log_tp
+      type: varchar
+      value: "products.[].log.tp"
+      nullable: true
+
+    - name: product_logs
+      type: text
+      value: "products.[].logs"
+
+    # products[].meta.*
+    - name: product_meta_tokens
+      type: varchar
+      value: "products.[].meta.tokens.[*]"   # массив → сериализуем строкой на нормалайзере
+    - name: product_meta_preset_id
+      type: int4
+      value: "products.[].meta.preset_id"

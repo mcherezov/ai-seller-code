@@ -1,0 +1,7 @@
+load_from:
+  - python_file:
+      relative_path: dagster_conf/repositories/wb_rep.py
+  - python_file:
+      relative_path: dagster_conf/repositories/ozon_rep.py
+  - python_file:
+      relative_path: dagster_conf/repositories/wb_autogen_repository.py

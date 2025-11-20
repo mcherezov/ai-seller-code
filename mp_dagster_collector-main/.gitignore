@@ -1,0 +1,103 @@
+# --------------------------
+# Секреты и локальные настройки
+# --------------------------
+.env
+config.json
+
+# --------------------------
+# IDE / редакторы
+# --------------------------
+# PyCharm / IntelliJ IDEA
+.idea/
+/ .idea/
+*.iml
+# VSCode
+.vscode/
+
+# --------------------------
+# Виртуальные окружения
+# --------------------------
+# если используете .venv или venv внутри проекта
+.venv/
+venv/
+env/
+ENV/
+
+# --------------------------
+# Python-артефакты
+# --------------------------
+# байткод
+__pycache__/
+*.py[cod]
+*$py.class
+
+# папки кеша
+.pytest_cache/
+.mypy_cache/
+__pypackages__/
+
+# файлы покрытий
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+*.py,cover
+
+# --------------------------
+# Логи и временные файлы
+# --------------------------
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# --------------------------
+# Docker
+# --------------------------
+# если у вас есть Dockerfile, docker-compose.yml,
+# но не нужны артефакты сборки
+docker-compose.override.yml
+**/Dockerfile.*
+docker-compose.*.local.yml
+*.pem
+
+# --------------------------
+# Системные файлы
+# --------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --------------------------
+# Дополнительно: прочие
+# --------------------------
+# результаты сборок и пакетов
+dist/
+build/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+share/python-wheels/
+
+# lock-файлы конструктора (если не хотите коммитить)
+Pipfile.lock
+poetry.lock
+
+# архивы и образцы базы данных
+*.sqlite3
+*.db
+
+# если используете JetBrains Project Rover / Space
+.idea_rover/
+test.py
+test1.py
+test3.py
+dagster_home/

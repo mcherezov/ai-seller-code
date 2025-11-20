@@ -1,0 +1,25 @@
+services:
+  dagster:
+    build: .
+    container_name: mpdc_dagster
+    env_file:
+      - .env
+    working_dir: /opt/mp_data_collector
+    environment:
+      DAGSTER_HOME: /opt/mp_data_collector/dagster_home
+      TZ: Europe/Moscow
+    volumes:
+      - ./:/opt/mp_data_collector
+      - dagster_home:/opt/mp_data_collector/dagster_home/storage
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    networks:
+      - dagnet
+
+volumes:
+  dagster_home:
+
+networks:
+  dagnet:
+    external: true
+    name: mp_dagster_collector_dagnet
