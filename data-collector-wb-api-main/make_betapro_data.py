@@ -7,24 +7,7 @@ from datetime import datetime
 from art_utils import get_right_art, prepare_art
 from make_google import make_google_table
 
-betapro_tokens = [
-    {
-        'password': 'LKi4y97rIGRYgbFF',
-        'partner_id': '1040',
-    },
-    {
-        'password': 'LKo8796TIRJGkuyFF',
-        'partner_id': '1134',
-    },
-    {
-        'password': 'LKuy86543q4tFF',
-        'partner_id': '1160',
-    },
-    {
-        'password': 'LKou8783irgUTHFF',
-        'partner_id': '1159',
-    },
-]
+
 
 def get_xml_data(partner_id, password):
     tg_logger.info('Load xml data')
