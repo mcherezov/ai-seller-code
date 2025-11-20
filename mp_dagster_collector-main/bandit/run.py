@@ -68,13 +68,7 @@ def load_config():
         'wb_api_token': env_config.get('WB_API_TOKEN_YULIA'),
 
         'db_config': {
-            'user': env_config.get('DEST_DB_USER','aiadmin'),
-            'password': env_config.get('DEST_DB_PASSWORD','b1g8fqrgbp56ppg4uucc8jfi4'),
-            'host': env_config.get('DEST_DB_HOST', 'rc1a-6ic32g9da782j8kh.mdb.yandexcloud.net'),
-            'port': env_config.get('DEST_DB_PORT', '6432'),
-            'dbname': env_config.get('DEST_DB_NAME','app'),
-            'sslmode': env_config.get('DEST_DB_SSLMODE','verify-full'),
-            'sslrootcert': env_config.get('DEST_DB_SSLROOTCERT','../config/CA.pem')
+         
         }
     }
 
