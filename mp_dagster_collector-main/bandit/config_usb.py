@@ -47,13 +47,7 @@ class UCBBanditConfig:
         self.warehouse_cost = warehouse_cost
         self.stocks = stocks
         self.db_config = db_config or {
-            "host": os.getenv("DEST_DB_HOST", "rc1a-6ic32g9da782j8kh.mdb.yandexcloud.net"),
-            "port": os.getenv("DEST_DB_PORT", "6432"),
-            "dbname": os.getenv("DEST_DB_NAME", "app"),
-            "user": os.getenv("DEST_DB_USER", "aiadmin"),
-            "password": os.getenv("DEST_DB_PASSWORD", "b1g8fqrgbp56ppg4uucc8jfi4"),
-            "sslmode": os.getenv("DEST_DB_SSLMODE", "verify-full"),
-            "sslrootcert": os.getenv("DEST_DB_SSLROOTCERT", str(Path(__file__).resolve().parent.parent / "CA.pem"))
+           
         }
         self.target_cpa = target_cpa
         self.exploration_factor = exploration_factor
