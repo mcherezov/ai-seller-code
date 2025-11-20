@@ -39,11 +39,7 @@ def send_telegram_message(message: str, bot_token: str, chat_id: str):
 
 def create_db_engine():
     connection_params = {
-        'host': 'rc1a-6ic32g9da782j8kh.mdb.yandexcloud.net',
-        'port': '6432',
-        'database': 'app',
-        'user': 'aiadmin',
-        'password': 'b1g8fqrgbp56ppg4uucc8jfi4'
+
     }
 
     connection_string = "postgresql://{user}:{password}@{host}:{port}/{database}".format(**connection_params)
