@@ -1,0 +1,13 @@
+.env
+research/code/data/
+.ipynb_checkpoints
+python_service/app/config.json
+python_service/app/test.py
+python_service_logs.txt
+google_chrome_users/
+google_chrome_users_history_downloader/
+__pycache__/
+venv/
+.idea/
+*.key
+*.csr

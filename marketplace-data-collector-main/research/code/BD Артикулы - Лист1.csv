@@ -1,0 +1,504 @@
+product_id,seller_id,mp_id,category,marketplace_name,legal_entity
+AT-001W,AT-001W,1364959290,Прочее,OZON,ИНТЕР
+AT-002BE,AT-002BE,1364959245,Прочее,OZON,ИНТЕР
+AT-002BK,AT-002BK,1364959265,Прочее,OZON,ИНТЕР
+AT-002G,AT-002G,1364959302,Прочее,OZON,ИНТЕР
+AT-003BK,AT-003BK,1364959303,Прочее,OZON,ИНТЕР
+AT-003W,AT-003W,,Прочее,OZON,ИНТЕР
+B-DRS1-1,B-DRS1-1,1448620704,Прочее,OZON,ИНТЕР
+B-FCM1-1BK,B-FCM1-1BK,,Прочее,OZON,ИНТЕР
+B-FCM1-1WT,B-FCM1-1WT,,Прочее,OZON,ИНТЕР
+B-MCM1-1,B-MCM1-1,,Прочее,OZON,ИНТЕР
+B-MG1-1,B-MG1-1,,Прочее,OZON,ИНТЕР
+CHS1-1,CHS1-1,1793120033,Инструменты,OZON,ИНТЕР
+CPT1-1BE,CPT1-1BE,,Коврики для ванной,OZON,ИНТЕР
+CPT1-1GR,CPT1-1GR,,Коврики для ванной,OZON,ИНТЕР
+CPT1-1MBE,CPT1-1MBE,,Коврики для ванной,OZON,ИНТЕР
+DRL2-1,DRL2-1,1793089175,Инструменты,OZON,ИНТЕР
+DY-DRL3-1,DY-DRL3-1,1793078777,Инструменты,OZON,ИНТЕР
+DRL4-1,DRL4-1,1793090454,Инструменты,OZON,ИНТЕР
+DRL5-1,DRL5-1,1793090873,Инструменты,OZON,ИНТЕР
+DYDB1-1,DYDB1-1,1491493976,Инструменты,OZON,ИНТЕР
+DYGR1-1,DYGR1-1,1392801013,Инструменты,OZON,ИНТЕР
+DYWR1-1,DYWR1-1,1583345618,Инструменты,OZON,ИНТЕР
+FP1-1,FP1-1,1696729548,Сковороды,OZON,ИНТЕР
+FP1-2,FP1-2,1696729486,Сковороды,OZON,ИНТЕР
+FP1-3,FP1-3,1696729455,Сковороды,OZON,ИНТЕР
+GR1-2,GR1-2,1801814447,Инструменты,OZON,ИНТЕР
+H-BOWL1-2,H-BOWL1-2,,Миски,OZON,ИНТЕР
+H-BOWL1-2C,H-BOWL1-2C,,Миски,OZON,ИНТЕР
+H-CPT2-1BE,H-CPT2-1BE,1583090984,Коврики для ванной,OZON,ИНТЕР
+H-CPT2-1CA,H-CPT2-1CA,,Коврики для ванной,OZON,ИНТЕР
+H-DSP1-1,H-DSP1-1,,Прочее,OZON,ИНТЕР
+H-GFC2-1,H-GFC2-1,1469643443,Контейнеры,OZON,ИНТЕР
+H-GFC1-1,H-GFC1-1,1364959264,Контейнеры,OZON,ИНТЕР
+H-GFC1-2,H-GFC1-2,,Контейнеры,OZON,ИНТЕР
+H-GFC1-3,H-GFC1-3,1485406925,Контейнеры,OZON,ИНТЕР
+H-LB1-1GR,H-LB1-1GR,1364965523,Корзины для белья,OZON,ИНТЕР
+H-LB1-1WT,H-LB1-1WT,1583090979,Корзины для белья,OZON,ИНТЕР
+H-LED-1-1-15,H-LED-1-1-15,1556882940,Прочее,OZON,ИНТЕР
+H-LED-1-1-20,H-LED-1-1-20,1392801040,Прочее,OZON,ИНТЕР
+H-MOP1-1,H-MOP1-1,1408067223,Швабры,OZON,ИНТЕР
+H-ORG1-1,H-ORG1-1,1491493956,Контейнеры,OZON,ИНТЕР
+H-ORG1-2,H-ORG1-2,1556883058,Контейнеры,OZON,ИНТЕР
+H-ORG1-3,H-ORG1-3,1391360600,Контейнеры,OZON,ИНТЕР
+H-SJ1-1,H-SJ1-1,1392801064,Прочее,OZON,ИНТЕР
+H-TC1-1WT,H-TC1-1WT,1416607746,Мусорные ведра,OZON,ИНТЕР
+H-TC1-2WT,H-TC1-2WT,1573115196,Мусорные ведра,OZON,ИНТЕР
+H-TC1-3WT,H-TC1-3WT,1573115848,Мусорные ведра,OZON,ИНТЕР
+H-TC1-4WT,H-TC1-4WT,1573116073,Мусорные ведра,OZON,ИНТЕР
+H-TC1-5WT,H-TC1-5WT,1573116336,Мусорные ведра,OZON,ИНТЕР
+HL1-1,HL1-1,,Прочее,OZON,ИНТЕР
+HNG1-1BK,HNG1-1BK,1364965321,Прочее,OZON,ИНТЕР
+HNG1-1W,HNG1-1W,,Прочее,OZON,ИНТЕР
+K-EBR-1-1,K-EBR-1-1,,Прочее,OZON,ИНТЕР
+K-PMC1-1,K-PMC1-1,,Прочее,OZON,ИНТЕР
+LDM1-1,LDM1-1,1364959242,Инструменты,OZON,ИНТЕР
+PHA1-1BK,PHA1-1BK,,Прочее,OZON,ИНТЕР
+PHA1-1GR,PHA1-1GR,,Прочее,OZON,ИНТЕР
+PHA1-1PK,PHA1-1PK,,Прочее,OZON,ИНТЕР
+PHA1-1RD,PHA1-1RD,,Прочее,OZON,ИНТЕР
+PHA1-1WT,PHA1-1WT,,Прочее,OZON,ИНТЕР
+PT1-3,PT1-3,1392801044,Кастрюли,OZON,ИНТЕР
+PT1-1,PT1-1,1408067232,Кастрюли,OZON,ИНТЕР
+PT1-2,PT1-2,1416607811,Кастрюли,OZON,ИНТЕР
+PT1-4,PT1-4,1364965326,Кастрюли,OZON,ИНТЕР
+PT1-5,PT1-5,1392801032,Кастрюли,OZON,ИНТЕР
+PT1-6,PT1-6,1392801042,Кастрюли,OZON,ИНТЕР
+PT1-7,PT1-7,1416607721,Кастрюли,OZON,ИНТЕР
+PT2-1RD,PT2-1RD,1448620891,Кастрюли,OZON,ИНТЕР
+PT2-2GR,PT2-2GR,1364959262,Кастрюли,OZON,ИНТЕР
+PT2-3GN,PT2-3GN,1448620754,Кастрюли,OZON,ИНТЕР
+SHC1-1BK,SHC1-1BK,,Прочее,OZON,ИНТЕР
+SHC1-1BR,SHC1-1BR,1556882682,Прочее,OZON,ИНТЕР
+SHC1-1GR,SHC1-1GR,1556882870,Прочее,OZON,ИНТЕР
+SHC1-2,SHC1-2,1364959267,Прочее,OZON,ИНТЕР
+TM1-1BK,TM1-1BK,,Зеркала косметические,OZON,ИНТЕР
+TM1-1WT,TM1-1WT,,Зеркала косметические,OZON,ИНТЕР
+TM1-2BK,TM1-2BK,,Зеркала косметические,OZON,ИНТЕР
+TM1-2WT,TM1-2WT,,Зеркала косметические,OZON,ИНТЕР
+TM2-1BK,TM2-1BK,,Зеркала косметические,OZON,ИНТЕР
+TM2-1WT,TM2-1WT,,Зеркала косметические,OZON,ИНТЕР
+TM2-2BK,TM2-2BK,,Зеркала косметические,OZON,ИНТЕР
+TM2-2WT,TM2-2WT,,Зеркала косметические,OZON,ИНТЕР
+TVB1-1,TVB 1-1,1583345623,Прочее,OZON,ИНТЕР
+TVB1-2,TVB1-2,1556882708,Прочее,OZON,ИНТЕР
+WR1-2,WR1-2,1801794673,Инструменты,OZON,ИНТЕР
+CPT1-1MGR,CPT1-1MGR,,Коврики для ванной,OZON,ИНТЕР
+BC1-1BE,BC1-1BE,,Прочее,OZON,ИНТЕР
+BC1-1BR,BC1-1BR,,Прочее,OZON,ИНТЕР
+BC1-1WT,BC1-1WT,,Прочее,OZON,ИНТЕР
+BC1-2GR,BC1-2GR,,Прочее,OZON,ИНТЕР
+BC1-2WT,BC1-2WT,,Прочее,OZON,ИНТЕР
+BS1-1BR,BS1-1BR,1801866270,Прочее,OZON,ИНТЕР
+BS1-1GR,BS1-1GR,1801866445,Прочее,OZON,ИНТЕР
+GR1-2C,GR1-2C,1801813189,Инструменты,OZON,ИНТЕР
+H-MOP2-1,H-MOP2-1,,Швабры,OZON,ИНТЕР
+ND-KOR-GR,ND-KOR-GR,,Прочее,OZON,ИНТЕР
+NHD1-1,NHD1-1,1801824720,Инструменты,OZON,ИНТЕР
+WR1-2C,WR1-2C,1801796375,Инструменты,OZON,ИНТЕР
+Н-МОР3-1,Н-МОР3-1,,Швабры,OZON,ИНТЕР
+CHS1-1C,CHS1-1C,1793117278,Инструменты,OZON,ИНТЕР
+AT-001W,AT-001W,,Прочее,OZON,АТ
+AT-002BE,AT-002BE,1392802590,Прочее,OZON,АТ
+AT-002BK,AT-002BK,1392802416,Прочее,OZON,АТ
+AT-002G,AT-002G,,Прочее,OZON,АТ
+AT-003BK,AT-003BK,1556883268,Прочее,OZON,АТ
+AT-003W,AT-003W,1556883474,Прочее,OZON,АТ
+B-DRS1-1,B-DRS1-1,1392802432,Прочее,OZON,АТ
+B-FCM1-1BK,B-FCM1-1BK,,Прочее,OZON,АТ
+B-FCM1-1WT,B-FCM1-1WT,,Прочее,OZON,АТ
+B-MCM1-1,B-MCM1-1,1556883692,Прочее,OZON,АТ
+B-MG1-1,B-MG1-1,,Прочее,OZON,АТ
+CHS1-1,CHS1-1,1540734256,Инструменты,OZON,АТ
+CPT1-1BE,CPT1-1BE,1479961442,Коврики для ванной,OZON,АТ
+CPT1-1GR,CPT1-1GR,1556883446,Коврики для ванной,OZON,АТ
+CPT1-1MBE,CPT1-1MBE,1480259168,Коврики для ванной,OZON,АТ
+DRL2-1,DRL2-1,1540606076,Инструменты,OZON,АТ
+DY-DRL3-1,DY-DRL3-1,,Инструменты,OZON,АТ
+DRL4-1,DRL4-1,1540599154,Инструменты,OZON,АТ
+DRL5-1,DRL5-1,1540599434,Инструменты,OZON,АТ
+DYDB1-1,DYDB1-1,1401867209,Инструменты,OZON,АТ
+DYGR1-1,DYGR1-1,1401867236,Инструменты,OZON,АТ
+DYWR1-1,DYWR1-1,1401867261,Инструменты,OZON,АТ
+FP1-1,FP1-1,1696715080,Сковороды,OZON,АТ
+FP1-2,FP1-2,1696718548,Сковороды,OZON,АТ
+FP1-3,FP1-3,1696718242,Сковороды,OZON,АТ
+GR1-2,GR1-2,1540726232,Инструменты,OZON,АТ
+H-BOWL1-2,H-BOWL1-2,1479545089,Миски,OZON,АТ
+H-BOWL1-2C,H-BOWL1-2C,1526713607,Миски,OZON,АТ
+H-CPT2-1BE,H-CPT2-1BE,,Коврики для ванной,OZON,АТ
+H-CPT2-1CA,H-CPT2-1CA,,Коврики для ванной,OZON,АТ
+H-DSP1-1,H-DSP 1-1,1392802414,Прочее,OZON,АТ
+H-GFC2-1,H-GFC2-1,1469640126,Контейнеры,OZON,АТ
+H-GFC1-1,H-GFC1-1,1471757153,Контейнеры,OZON,АТ
+H-GFC1-2,H-GFC1-2,1392802615,Контейнеры,OZON,АТ
+H-GFC1-3,H-GFC1-3,1392802459,Контейнеры,OZON,АТ
+H-LB1-1GR,H-LB1-1GR,1556883637,Корзины для белья,OZON,АТ
+H-LB1-1WT,H-LB1-1WT,,Корзины для белья,OZON,АТ
+H-LED-1-1-15,H-LED-1-1-15,,Прочее,OZON,АТ
+H-LED-1-1-20,H-LED-1-1-20,1556883736,Прочее,OZON,АТ
+H-MOP1-1,H-MOP1-1,1556883152,Швабры,OZON,АТ
+H-ORG1-1,H-ORG1-1,1416936260,Контейнеры,OZON,АТ
+H-ORG1-2,H-ORG1-2,,Контейнеры,OZON,АТ
+H-ORG1-3,H-ORG1-3,,Контейнеры,OZON,АТ
+H-SJ1-1,H-SJ1-1,1556883508,Прочее,OZON,АТ
+H-TC1-1WT,H-TC1-1WT,1556883098,Мусорные ведра,OZON,АТ
+H-TC1-2WT,H-TC1-2WT,1581359923,Мусорные ведра,OZON,АТ
+H-TC1-3WT,H-TC1-3WT,1581360089,Мусорные ведра,OZON,АТ
+H-TC1-4WT,H-TC1-4WT,1581359989,Мусорные ведра,OZON,АТ
+H-TC1-5WT,H-TC1-5WT,1581362232,Мусорные ведра,OZON,АТ
+HL1-1,HL1-1,,Прочее,OZON,АТ
+HNG1-1BK,HNG1-1BK,1392803468,Прочее,OZON,АТ
+HNG1-1W,HNG1-1W,1392808184,Прочее,OZON,АТ
+K-EBR-1-1,K-EBR-1-1,1556883323,Прочее,OZON,АТ
+K-PMC1-1,K-PMC1-1,1416958886,Прочее,OZON,АТ
+LDM1-1,LDM1-1,1392807094,Инструменты,OZON,АТ
+PHA1-1BK,PHA1-1BK,1420745545,Прочее,OZON,АТ
+PHA1-1GR,PHA 1-1GR,1392802409,Прочее,OZON,АТ
+PHA1-1PK,PHA1-1PK,1556883279,Прочее,OZON,АТ
+PHA1-1RD,PHA1-1RD,1392803489,Прочее,OZON,АТ
+PHA1-1WT,PHA1-1WT,,Прочее,OZON,АТ
+PT1-3,PT1-3,1408071422,Кастрюли,OZON,АТ
+PT1-1,PT1-1,1392807814,Кастрюли,OZON,АТ
+PT1-2,PT1-2,1420745540,Кастрюли,OZON,АТ
+PT1-4,PT1-4,1401867570,Кастрюли,OZON,АТ
+PT1-5,PT1-5,1401867188,Кастрюли,OZON,АТ
+PT1-6,PT1-6,1401867732,Кастрюли,OZON,АТ
+PT1-7,PT1-7,1401867381,Кастрюли,OZON,АТ
+PT2-1RD,PT2-1RD,1401867230,Кастрюли,OZON,АТ
+PT2-2GR,PT2-2GR,1401867104,Кастрюли,OZON,АТ
+PT2-3GN,PT2-3GN,1401867170,Кастрюли,OZON,АТ
+SHC1-1BK,SHC1-1BK,,Прочее,OZON,АТ
+SHC1-1BR,SHC1-1BR,,Прочее,OZON,АТ
+SHC1-1GR,SHC1-1GR,,Прочее,OZON,АТ
+SHC1-2,SHC1-2,,Прочее,OZON,АТ
+TM1-1BK,TM1-1BK,1430160884,Зеркала косметические,OZON,АТ
+TM1-1WT,TM1-1WT,1480088374,Зеркала косметические,OZON,АТ
+TM1-2BK,TM1-2BK,1601568233,Зеркала косметические,OZON,АТ
+TM1-2WT,TM1-2WT,1596552341,Зеркала косметические,OZON,АТ
+TM2-1BK,TM2-1BK,1596478658,Зеркала косметические,OZON,АТ
+TM2-1WT,TM2-1WT,1603776160,Зеркала косметические,OZON,АТ
+TM2-2BK,TM2-2BK,1603777706,Зеркала косметические,OZON,АТ
+TM2-2WT,TM2-2WT,1596478718,Зеркала косметические,OZON,АТ
+TVB1-1,TVB1-1,1556883411,Прочее,OZON,АТ
+TVB1-2,TVB1-2,,Прочее,OZON,АТ
+WR1-2,WR1-2,1540599735,Инструменты,OZON,АТ
+CPT1-1MGR,CPT1-1MGR,1480258423,Коврики для ванной,OZON,АТ
+BC1-1BE,BC1-1BE,,Прочее,OZON,АТ
+BC1-1BR,BC1-1BR,,Прочее,OZON,АТ
+BC1-1WT,BC1-1WT,1480063212,Прочее,OZON,АТ
+BC1-2GR,BC1-2GR,,Прочее,OZON,АТ
+BC1-2WT,BC1-2WT,,Прочее,OZON,АТ
+BS1-1BR,BS1-1BR,,Прочее,OZON,АТ
+BS1-1GR,BS1-1GR,,Прочее,OZON,АТ
+GR1-2C,GR1-2C,,Инструменты,OZON,АТ
+H-MOP2-1,H-MOP2-1,1777282535,Швабры,OZON,АТ
+ND-KOR-GR,ND-KOR-GR,,Прочее,OZON,АТ
+NHD1-1,NHD1-1,,Инструменты,OZON,АТ
+WR1-2C,WR1-2C,,Инструменты,OZON,АТ
+Н-МОР3-1,H-MOP3-1,1777282536,Швабры,OZON,АТ
+CHS1-1C,CHS1-1C,,Инструменты,OZON,АТ
+AT-001W,AT-001W,,Прочее,Wildberries,ИНТЕР
+AT-002BE,AT-002BE,,Прочее,Wildberries,ИНТЕР
+AT-002BK,AT-002BK,,Прочее,Wildberries,ИНТЕР
+AT-002G,AT-002G,,Прочее,Wildberries,ИНТЕР
+AT-003BK,AT-003BK,,Прочее,Wildberries,ИНТЕР
+AT-003W,AT-003W,,Прочее,Wildberries,ИНТЕР
+B-DRS1-1,B-DRS1-1,,Прочее,Wildberries,ИНТЕР
+B-FCM1-1BK,B-FCM1-1BK,,Прочее,Wildberries,ИНТЕР
+B-FCM1-1WT,B-FCM1-1WT,,Прочее,Wildberries,ИНТЕР
+B-MCM1-1,B-MCM1-1,,Прочее,Wildberries,ИНТЕР
+B-MG1-1,B-MG1-1,,Прочее,Wildberries,ИНТЕР
+CHS1-1,CHS1-1,304830312,Инструменты,Wildberries,ИНТЕР
+CPT1-1BE,CPT1-1BE,196426052,Коврики для ванной,Wildberries,ИНТЕР
+CPT1-1GR,CPT1-1GR,196426053,Коврики для ванной,Wildberries,ИНТЕР
+CPT1-1MBE,CPT1-1MBE,204454703,Коврики для ванной,Wildberries,ИНТЕР
+DRL2-1,DRL2-1,304785544,Инструменты,Wildberries,ИНТЕР
+DY-DRL3-1,DY-DRL3-1,304785541,Инструменты,Wildberries,ИНТЕР
+DRL4-1,DRL4-1,304785545,Инструменты,Wildberries,ИНТЕР
+DRL5-1,DRL5-1,304785546,Инструменты,Wildberries,ИНТЕР
+DYDB1-1,DYDB1-1,196450174,Инструменты,Wildberries,ИНТЕР
+DYGR1-1,DYGR1-1,196450532,Инструменты,Wildberries,ИНТЕР
+DYWR1-1,DYWR1-1,196449627,Инструменты,Wildberries,ИНТЕР
+FP1-1,FP1-1,261165510,Сковороды,Wildberries,ИНТЕР
+FP1-2,FP1-2,261185226,Сковороды,Wildberries,ИНТЕР
+FP1-3,FP1-3,262386611,Сковороды,Wildberries,ИНТЕР
+GR1-2,GR1-2,304785548,Инструменты,Wildberries,ИНТЕР
+H-BOWL1-2,H-BOWL1-2,212864351,Миски,Wildberries,ИНТЕР
+H-BOWL1-2C,H-BOWL1-2C,219532125,Миски,Wildberries,ИНТЕР
+H-CPT2-1BE,H-CPT2-1BE,,Коврики для ванной,Wildberries,ИНТЕР
+H-CPT2-1CA,H-CPT2-1CA,,Коврики для ванной,Wildberries,ИНТЕР
+H-DSP1-1,H-DSP1-1,,Прочее,Wildberries,ИНТЕР
+H-GFC2-1,H-GFC 2-1,216853412,Контейнеры,Wildberries,ИНТЕР
+H-GFC1-1,H-GFC1-1,196426420,Контейнеры,Wildberries,ИНТЕР
+H-GFC1-2,H-GFC1-2,196426423,Контейнеры,Wildberries,ИНТЕР
+H-GFC1-3,H-GFC1-3,196426422,Контейнеры,Wildberries,ИНТЕР
+H-LB1-1GR,H-LB1-1GR,196447979,Корзины для белья,Wildberries,ИНТЕР
+H-LB1-1WT,H-LB1-1WT,196447978,Корзины для белья,Wildberries,ИНТЕР
+H-LED-1-1-15,H-LED-1-1-15,,Прочее,Wildberries,ИНТЕР
+H-LED-1-1-20,H-LED-1-1-20,,Прочее,Wildberries,ИНТЕР
+H-MOP1-1,H-MOP 1-1,196448699,Швабры,Wildberries,ИНТЕР
+H-ORG1-1,H-ORG1-1,196446896,Контейнеры,Wildberries,ИНТЕР
+H-ORG1-2,H-ORG1-2,196446895,Контейнеры,Wildberries,ИНТЕР
+H-ORG1-3,H-ORG1-3,196447519,Контейнеры,Wildberries,ИНТЕР
+H-SJ1-1,H-SJ1-1,196448395,Прочее,Wildberries,ИНТЕР
+H-TC1-1WT,H-TC1-1WT,196445214,Мусорные ведра,Wildberries,ИНТЕР
+H-TC1-2WT,H-TC1-2WT,230587127,Мусорные ведра,Wildberries,ИНТЕР
+H-TC1-3WT,H-TC1-3WT,230588261,Мусорные ведра,Wildberries,ИНТЕР
+H-TC1-4WT,H-TC1-4WT,230589194,Мусорные ведра,Wildberries,ИНТЕР
+H-TC1-5WT,H-TC1-5WT,230590034,Мусорные ведра,Wildberries,ИНТЕР
+HL1-1,HL1-1,,Прочее,Wildberries,ИНТЕР
+HNG1-1BK,HNG1-1BK,,Прочее,Wildberries,ИНТЕР
+HNG1-1W,HNG1-1W,,Прочее,Wildberries,ИНТЕР
+K-EBR-1-1,K-EBR-1-1,196426650,Прочее,Wildberries,ИНТЕР
+K-PMC1-1,K-PMC1-1,196426654,Прочее,Wildberries,ИНТЕР
+LDM1-1,LDM1-1,,Инструменты,Wildberries,ИНТЕР
+PHA1-1BK,PHA1-1BK,,Прочее,Wildberries,ИНТЕР
+PHA1-1GR,PHA1-1GR,,Прочее,Wildberries,ИНТЕР
+PHA1-1PK,PHA1-1PK,,Прочее,Wildberries,ИНТЕР
+PHA1-1RD,PHA1-1RD,,Прочее,Wildberries,ИНТЕР
+PHA1-1WT,PHA1-1WT,,Прочее,Wildberries,ИНТЕР
+PT1-3,PT 1-3,196435706,Кастрюли,Wildberries,ИНТЕР
+PT1-1,PT1-1,196435708,Кастрюли,Wildberries,ИНТЕР
+PT1-2,PT1-2,196435712,Кастрюли,Wildberries,ИНТЕР
+PT1-4,PT1-4,196435707,Кастрюли,Wildberries,ИНТЕР
+PT1-5,PT1-5,196435704,Кастрюли,Wildberries,ИНТЕР
+PT1-6,PT1-6,196435705,Кастрюли,Wildberries,ИНТЕР
+PT1-7,PT1-7,196435709,Кастрюли,Wildberries,ИНТЕР
+PT2-1RD,PT2-1RD,196435710,Кастрюли,Wildberries,ИНТЕР
+PT2-2GR,PT2-2GR,196435703,Кастрюли,Wildberries,ИНТЕР
+PT2-3GN,PT2-3GN,196435711,Кастрюли,Wildberries,ИНТЕР
+SHC1-1BK,SHC1-1BK,,Прочее,Wildberries,ИНТЕР
+SHC1-1BR,SHC1-1BR,196442771,Прочее,Wildberries,ИНТЕР
+SHC1-1GR,SHC1-1GR,196442772,Прочее,Wildberries,ИНТЕР
+SHC1-2,SHC1-2,,Прочее,Wildberries,ИНТЕР
+TM1-1BK,TM1-1BK,196420128,Зеркала косметические,Wildberries,ИНТЕР
+TM1-1WT,TM1-1WT,196420129,Зеркала косметические,Wildberries,ИНТЕР
+TM1-2BK,TM1-2BK,303770169,Зеркала косметические,Wildberries,ИНТЕР
+TM1-2WT,TM1-2WT,303770174,Зеркала косметические,Wildberries,ИНТЕР
+TM2-1BK,TM2-1BK,303770167,Зеркала косметические,Wildberries,ИНТЕР
+TM2-1WT,TM2-1WT,303770168,Зеркала косметические,Wildberries,ИНТЕР
+TM2-2BK,TM2-2BK,303770176,Зеркала косметические,Wildberries,ИНТЕР
+TM2-2WT,TM2-2WT,303770177,Зеркала косметические,Wildberries,ИНТЕР
+TVB1-1,TVB1-1,,Прочее,Wildberries,ИНТЕР
+TVB1-2,TVB1-2,,Прочее,Wildberries,ИНТЕР
+WR1-2,WR1-2,304785542,Инструменты,Wildberries,ИНТЕР
+CPT1-1MGR,CPT1-1MGR,204454705,Коврики для ванной,Wildberries,ИНТЕР
+BC1-1BE,BC1-1BE,,Прочее,Wildberries,ИНТЕР
+BC1-1BR,BC1-1BR,,Прочее,Wildberries,ИНТЕР
+BC1-1WT,BC1-1WT,,Прочее,Wildberries,ИНТЕР
+BC1-2GR,BC1-2GR,,Прочее,Wildberries,ИНТЕР
+BC1-2WT,BC1-2WT,,Прочее,Wildberries,ИНТЕР
+BS1-1BR,BS1-1BR,306979184,Прочее,Wildberries,ИНТЕР
+BS1-1GR,BS1-1GR,306979183,Прочее,Wildberries,ИНТЕР
+GR1-2C,GR1-2C,304785549,Инструменты,Wildberries,ИНТЕР
+H-MOP2-1,H-MOP2-1,311074402,Швабры,Wildberries,ИНТЕР
+ND-KOR-GR,ND-KOR-GR,,Прочее,Wildberries,ИНТЕР
+NHD1-1,NHD1-1,306434143,Инструменты,Wildberries,ИНТЕР
+WR1-2C,WR1-2С,304785543,Инструменты,Wildberries,ИНТЕР
+Н-МОР3-1,H-MOP3-1,311074403,Швабры,Wildberries,ИНТЕР
+CHS1-1C,CHS1-1C,304830313,Инструменты,Wildberries,ИНТЕР
+AT-001W,AT-001W,,Прочее,Wildberries,АТ
+AT-002BE,AT-002BE,,Прочее,Wildberries,АТ
+AT-002BK,AT-002BK,,Прочее,Wildberries,АТ
+AT-002G,AT-002G,,Прочее,Wildberries,АТ
+AT-003BK,AT-003BK,,Прочее,Wildberries,АТ
+AT-003W,AT-003W,,Прочее,Wildberries,АТ
+B-DRS1-1,B-DRS1-1,,Прочее,Wildberries,АТ
+B-FCM1-1BK,B-FCM1-1BK,,Прочее,Wildberries,АТ
+B-FCM1-1WT,B-FCM1-1WT,,Прочее,Wildberries,АТ
+B-MCM1-1,B-MCM1-1,215321575,Прочее,Wildberries,АТ
+B-MG1-1,B-MG1-1,,Прочее,Wildberries,АТ
+CHS1-1,CHS1-1,291872237,Инструменты,Wildberries,АТ
+CPT1-1BE,CPT1-1BE,,Коврики для ванной,Wildberries,АТ
+CPT1-1GR,CPT1-1GR,,Коврики для ванной,Wildberries,АТ
+CPT1-1MBE,CPT1-1MBE,,Коврики для ванной,Wildberries,АТ
+DRL2-1,DRL2-1,291821435,Инструменты,Wildberries,АТ
+DY-DRL3-1,DY-DRL3-1,291802000,Инструменты,Wildberries,АТ
+DRL4-1,DRL4-1,236557120,Инструменты,Wildberries,АТ
+DRL5-1,DRL5-1,236558991,Инструменты,Wildberries,АТ
+DYDB1-1,DYDB1-1,,Инструменты,Wildberries,АТ
+DYGR1-1,DYGR1-1,,Инструменты,Wildberries,АТ
+DYWR1-1,DYWR1-1,,Инструменты,Wildberries,АТ
+FP1-1,FP1-1,261789151,Сковороды,Wildberries,АТ
+FP1-2,FP1-2,262199804,Сковороды,Wildberries,АТ
+FP1-3,FP1-3,262206398,Сковороды,Wildberries,АТ
+GR1-2,GR1-2,291854271,Инструменты,Wildberries,АТ
+H-BOWL1-2,H-BOWL1-2,,Миски,Wildberries,АТ
+H-BOWL1-2C,H-BOWL1-2C,,Миски,Wildberries,АТ
+H-CPT2-1BE,H-CPT2-1BE,,Коврики для ванной,Wildberries,АТ
+H-CPT2-1CA,H-CPT2-1CA,,Коврики для ванной,Wildberries,АТ
+H-DSP1-1,H-DSP1-1,,Прочее,Wildberries,АТ
+H-GFC2-1,H-GFC 2-1,216854130,Контейнеры,Wildberries,АТ
+H-GFC1-1,H-GFC1-1,201356034,Контейнеры,Wildberries,АТ
+H-GFC1-2,H-GFC1-2,201356036,Контейнеры,Wildberries,АТ
+H-GFC1-3,H-GFC1-3,201356035,Контейнеры,Wildberries,АТ
+H-LB1-1GR,H-LB1-1GR,,Корзины для белья,Wildberries,АТ
+H-LB1-1WT,H-LB1-1WT,,Корзины для белья,Wildberries,АТ
+H-LED-1-1-15,H-LED-1-1-15,,Прочее,Wildberries,АТ
+H-LED-1-1-20,H-LED-1-1-20,,Прочее,Wildberries,АТ
+H-MOP1-1,H-MOP1-1,201443962,Швабры,Wildberries,АТ
+H-ORG1-1,H-ORG1-1,201443339,Контейнеры,Wildberries,АТ
+H-ORG1-2,H-ORG1-2,201443340,Контейнеры,Wildberries,АТ
+H-ORG1-3,H-ORG1-3,,Контейнеры,Wildberries,АТ
+H-SJ1-1,H-SJ1-1,,Прочее,Wildberries,АТ
+H-TC1-1WT,H-TC1-1WT,201441857,Мусорные ведра,Wildberries,АТ
+H-TC1-2WT,H-TC1-2WT,,Мусорные ведра,Wildberries,АТ
+H-TC1-3WT,H-TC1-3WT,,Мусорные ведра,Wildberries,АТ
+H-TC1-4WT,H-TC1-4WT,,Мусорные ведра,Wildberries,АТ
+H-TC1-5WT,H-TC1-5WT,,Мусорные ведра,Wildberries,АТ
+HL1-1,HL1-1,,Прочее,Wildberries,АТ
+HNG1-1BK,HNG1-1BK,,Прочее,Wildberries,АТ
+HNG1-1W,HNG1-1W,,Прочее,Wildberries,АТ
+K-EBR-1-1,K-EBR-1-1,,Прочее,Wildberries,АТ
+K-PMC1-1,K-PMC1-1,,Прочее,Wildberries,АТ
+LDM1-1,LDM1-1,,Инструменты,Wildberries,АТ
+PHA1-1BK,PHA1-1BK,,Прочее,Wildberries,АТ
+PHA1-1GR,PHA1-1GR,,Прочее,Wildberries,АТ
+PHA1-1PK,PHA1-1PK,,Прочее,Wildberries,АТ
+PHA1-1RD,PHA1-1RD,,Прочее,Wildberries,АТ
+PHA1-1WT,PHA1-1WT,,Прочее,Wildberries,АТ
+PT1-3,PT1-3,201440827,Кастрюли,Wildberries,АТ
+PT1-1,PT1-1,201440830,Кастрюли,Wildberries,АТ
+PT1-2,PT1-2,201440828,Кастрюли,Wildberries,АТ
+PT1-4,PT1-4,201440822,Кастрюли,Wildberries,АТ
+PT1-5,PT1-5,201440824,Кастрюли,Wildberries,АТ
+PT1-6,PT1-6,201440829,Кастрюли,Wildberries,АТ
+PT1-7,PT1-7,201440825,Кастрюли,Wildberries,АТ
+PT2-1RD,PT2-1RD,201440823,Кастрюли,Wildberries,АТ
+PT2-2GR,PT2-2GR,201440831,Кастрюли,Wildberries,АТ
+PT2-3GN,PT2-3GN,201440826,Кастрюли,Wildberries,АТ
+SHC1-1BK,SHC1-1BK,,Прочее,Wildberries,АТ
+SHC1-1BR,SHC1-1BR,,Прочее,Wildberries,АТ
+SHC1-1GR,SHC1-1GR,,Прочее,Wildberries,АТ
+SHC1-2,SHC1-2,,Прочее,Wildberries,АТ
+TM1-1BK,TM1-1BK,201357761,Зеркала косметические,Wildberries,АТ
+TM1-1WT,TM1-1WT,201357762,Зеркала косметические,Wildberries,АТ
+TM1-2BK,TM1-2BK,235897076,Зеркала косметические,Wildberries,АТ
+TM1-2WT,TM1-2WT,235896954,Зеркала косметические,Wildberries,АТ
+TM2-1BK,TM2-1BK,235897250,Зеркала косметические,Wildberries,АТ
+TM2-1WT,TM2-1WT,235897077,Зеркала косметические,Wildberries,АТ
+TM2-2BK,TM2-2BK,235897252,Зеркала косметические,Wildberries,АТ
+TM2-2WT,TM2-2WT,235897251,Зеркала косметические,Wildberries,АТ
+TVB1-1,TVB1-1,,Прочее,Wildberries,АТ
+TVB1-2,TVB1-2,,Прочее,Wildberries,АТ
+WR1-2,WR1-2,292049075,Инструменты,Wildberries,АТ
+CPT1-1MGR,CPT1-1MGR,,Коврики для ванной,Wildberries,АТ
+BC1-1BE,BC1-1BE,,Прочее,Wildberries,АТ
+BC1-1BR,BC1-1BR,,Прочее,Wildberries,АТ
+BC1-1WT,BC1-1WT,,Прочее,Wildberries,АТ
+BC1-2GR,BC1-2GR,,Прочее,Wildberries,АТ
+BC1-2WT,BC1-2WT,,Прочее,Wildberries,АТ
+BS1-1BR,BS1-1BR,,Прочее,Wildberries,АТ
+BS1-1GR,BS1-1GR,,Прочее,Wildberries,АТ
+GR1-2C,GR1-2C,291859252,Инструменты,Wildberries,АТ
+H-MOP2-1,H-MOP2-1,300448918,Швабры,Wildberries,АТ
+ND-KOR-GR,ND-KOR-GR,,Прочее,Wildberries,АТ
+NHD1-1,NHD1-1,,Инструменты,Wildberries,АТ
+WR1-2C,WR1-2С,292056961,Инструменты,Wildberries,АТ
+Н-МОР3-1,H-MOP3-1,300448920,Швабры,Wildberries,АТ
+CHS1-1C,CHS1-1C,292020449,Инструменты,Wildberries,АТ
+AT-001W,AT-001W,,Прочее,Wildberries,КРАВЧИК
+AT-002BE,AT-002BE,134129265,Прочее,Wildberries,КРАВЧИК
+AT-002BK,AT-002BK,134129264,Прочее,Wildberries,КРАВЧИК
+AT-002G,AT-002G,134129266,Прочее,Wildberries,КРАВЧИК
+AT-003BK,AT-003BK,134132667,Прочее,Wildberries,КРАВЧИК
+AT-003W,AT-003W,134132666,Прочее,Wildberries,КРАВЧИК
+B-DRS1-1,B-DRS1-1,169515275,Прочее,Wildberries,КРАВЧИК
+B-FCM1-1BK,B-FCM1-1BK,173523791,Прочее,Wildberries,КРАВЧИК
+B-FCM1-1WT,B-FCM1-1WT,173523790,Прочее,Wildberries,КРАВЧИК
+B-MCM1-1,B-MCM1-1,169516920,Прочее,Wildberries,КРАВЧИК
+B-MG1-1,B-MG1-1,174346631,Прочее,Wildberries,КРАВЧИК
+CHS1-1,CHS1-1,,Инструменты,Wildberries,КРАВЧИК
+CPT1-1BE,CPT 1-1BE,166735025,Коврики для ванной,Wildberries,КРАВЧИК
+CPT1-1GR,CPT 1-1GR,166735024,Коврики для ванной,Wildberries,КРАВЧИК
+CPT1-1MBE,CPT1-1MBE,200556512,Коврики для ванной,Wildberries,КРАВЧИК
+DRL2-1,DRL2-1,,Инструменты,Wildberries,КРАВЧИК
+DY-DRL3-1,DRL3-1,,Инструменты,Wildberries,КРАВЧИК
+DRL4-1,DRL4-1,,Инструменты,Wildberries,КРАВЧИК
+DRL5-1,DRL5-1,,Инструменты,Wildberries,КРАВЧИК
+DYDB1-1,DYDB1-1,,Инструменты,Wildberries,КРАВЧИК
+DYGR1-1,DYGR1-1,,Инструменты,Wildberries,КРАВЧИК
+DYWR1-1,DYWR1-1,,Инструменты,Wildberries,КРАВЧИК
+FP1-1,FP1-1,,Сковороды,Wildberries,КРАВЧИК
+FP1-2,FP1-2,,Сковороды,Wildberries,КРАВЧИК
+FP1-3,FP1-3,,Сковороды,Wildberries,КРАВЧИК
+GR1-2,GR1-2,,Инструменты,Wildberries,КРАВЧИК
+H-BOWL1-2,H-BOWL1-2,,Миски,Wildberries,КРАВЧИК
+H-BOWL1-2C,H-BOWL1-2C,,Миски,Wildberries,КРАВЧИК
+H-CPT2-1BE,H-CPT2-1BE,,Коврики для ванной,Wildberries,КРАВЧИК
+H-CPT2-1CA,H-CPT2-1CA,,Коврики для ванной,Wildberries,КРАВЧИК
+H-DSP1-1,H-DSP1-1,174345020,Прочее,Wildberries,КРАВЧИК
+H-GFC2-1,H-GFC 2-1,,Контейнеры,Wildberries,КРАВЧИК
+H-GFC1-1,H-GFC1-1,174370014,Контейнеры,Wildberries,КРАВЧИК
+H-GFC1-2,H-GFC 1-2,179965160,Контейнеры,Wildberries,КРАВЧИК
+H-GFC1-3,H-GFC 1-3,179965969,Контейнеры,Wildberries,КРАВЧИК
+H-LB1-1GR,H-LB1-1GR,169517686,Корзины для белья,Wildberries,КРАВЧИК
+H-LB1-1WT,H-LB1-1WT,169518033,Корзины для белья,Wildberries,КРАВЧИК
+H-LED-1-1-15,H-LED-1-1-15,169518359,Прочее,Wildberries,КРАВЧИК
+H-LED-1-1-20,H-LED-1-1-20,169518360,Прочее,Wildberries,КРАВЧИК
+H-MOP1-1,H-MOP 1-1,174345889,Швабры,Wildberries,КРАВЧИК
+H-ORG1-1,H-ORG1-1,170581832,Контейнеры,Wildberries,КРАВЧИК
+H-ORG1-2,H-ORG1-2,175395166,Контейнеры,Wildberries,КРАВЧИК
+H-ORG1-3,H-ORG1-3,,Контейнеры,Wildberries,КРАВЧИК
+H-SJ1-1,H-SJ1-1,169519111,Прочее,Wildberries,КРАВЧИК
+H-TC1-1WT,H-TC1-1WT,169519257,Мусорные ведра,Wildberries,КРАВЧИК
+H-TC1-2WT,H-TC1-2WT,,Мусорные ведра,Wildberries,КРАВЧИК
+H-TC1-3WT,H-TC1-3WT,,Мусорные ведра,Wildberries,КРАВЧИК
+H-TC1-4WT,H-TC1-4WT,,Мусорные ведра,Wildberries,КРАВЧИК
+H-TC1-5WT,H-TC1-5WT,,Мусорные ведра,Wildberries,КРАВЧИК
+HL1-1,HL1-1,,Прочее,Wildberries,КРАВЧИК
+HNG1-1BK,HNG1-1BK,157900837,Прочее,Wildberries,КРАВЧИК
+HNG1-1W,HNG1-1W,157900838,Прочее,Wildberries,КРАВЧИК
+K-EBR-1-1,K-EBR-1-1,169514448,Прочее,Wildberries,КРАВЧИК
+K-PMC1-1,K-PMC1-1,169517381,Прочее,Wildberries,КРАВЧИК
+LDM1-1,LDM 1-1,140208030,Инструменты,Wildberries,КРАВЧИК
+PHA1-1BK,PHA 1-1BK,166735999,Прочее,Wildberries,КРАВЧИК
+PHA1-1GR,PHA 1-1GR,166736001,Прочее,Wildberries,КРАВЧИК
+PHA1-1PK,PHA 1-1PK,166736000,Прочее,Wildberries,КРАВЧИК
+PHA1-1RD,PHA 1-1RD,166736002,Прочее,Wildberries,КРАВЧИК
+PHA1-1WT,PHA 1-1WT,166735997,Прочее,Wildberries,КРАВЧИК
+PT1-3,PT 1-3,162944037,Кастрюли,Wildberries,КРАВЧИК
+PT1-1,PT1-1,,Кастрюли,Wildberries,КРАВЧИК
+PT1-2,PT1-2,,Кастрюли,Wildberries,КРАВЧИК
+PT1-4,PT1-4,,Кастрюли,Wildberries,КРАВЧИК
+PT1-5,PT1-5,,Кастрюли,Wildberries,КРАВЧИК
+PT1-6,PT1-6,,Кастрюли,Wildberries,КРАВЧИК
+PT1-7,PT1-7,,Кастрюли,Wildberries,КРАВЧИК
+PT2-1RD,PT2-1RD,,Кастрюли,Wildberries,КРАВЧИК
+PT2-2GR,PT2-2GR,,Кастрюли,Wildberries,КРАВЧИК
+PT2-3GN,PT2-3GN,,Кастрюли,Wildberries,КРАВЧИК
+SHC1-1BK,SHC1-1BK,206794537,Прочее,Wildberries,КРАВЧИК
+SHC1-1BR,SHC 1-1BR,153329731,Прочее,Wildberries,КРАВЧИК
+SHC1-1GR,SHC 1-1GR,153329576,Прочее,Wildberries,КРАВЧИК
+SHC1-2,SHC 1-2,153330000,Прочее,Wildberries,КРАВЧИК
+TM1-1BK,TM 1-1BK,166736075,Зеркала косметические,Wildberries,КРАВЧИК
+TM1-1WT,TM 1-1WT,166736074,Зеркала косметические,Wildberries,КРАВЧИК
+TM1-2BK,TM1-2BK,,Зеркала косметические,Wildberries,КРАВЧИК
+TM1-2WT,TM1-2WT,,Зеркала косметические,Wildberries,КРАВЧИК
+TM2-1BK,TM2-1BK,,Зеркала косметические,Wildberries,КРАВЧИК
+TM2-1WT,TM2-1WT,,Зеркала косметические,Wildberries,КРАВЧИК
+TM2-2BK,TM2-2BK,,Зеркала косметические,Wildberries,КРАВЧИК
+TM2-2WT,TM2-2WT,,Зеркала косметические,Wildberries,КРАВЧИК
+TVB1-1,TVB 1-1,166735537,Прочее,Wildberries,КРАВЧИК
+TVB1-2,TVB1-2,169516121,Прочее,Wildberries,КРАВЧИК
+WR1-2,WR1-2,,Инструменты,Wildberries,КРАВЧИК
+CPT1-1MGR,CPT1-1MGR,,Коврики для ванной,Wildberries,КРАВЧИК
+BC1-1BE,BC 1-1BE,166733950,Прочее,Wildberries,КРАВЧИК
+BC1-1BR,BC1-1BR,,Прочее,Wildberries,КРАВЧИК
+BC1-1WT,BC 1-1 WT,162143517,Прочее,Wildberries,КРАВЧИК
+BC1-2GR,BC 1-2GR,166734155,Прочее,Wildberries,КРАВЧИК
+BC1-2WT,BC 1-2 WT,162142981,Прочее,Wildberries,КРАВЧИК
+BS1-1BR,BC 1-1BR,166733491,Прочее,Wildberries,КРАВЧИК
+BS1-1GR,BC 1-1GR,166734121,Прочее,Wildberries,КРАВЧИК
+GR1-2C,GR1-2C,,Инструменты,Wildberries,КРАВЧИК
+H-MOP2-1,H-MOP2-1,287081233,Швабры,Wildberries,КРАВЧИК
+ND-KOR-GR,ND-KOR-GR,,Прочее,Wildberries,КРАВЧИК
+NHD1-1,NHD1-1,,Инструменты,Wildberries,КРАВЧИК
+WR1-2C,WR1-2С,,Инструменты,Wildberries,КРАВЧИК
+Н-МОР3-1,H-MOP3-1,287087015,Швабры,Wildberries,КРАВЧИК
+CHS1-1C,CHS1-1C,,Инструменты,Wildberries,КРАВЧИК
+FP1-4,FP1-4,330730055,Сковороды,Wildberries,АТ
+FP1-5,FP1-5,333171843,Сковороды,Wildberries,АТ
+FP1-6,FP1-6,333407740,Сковороды,Wildberries,АТ

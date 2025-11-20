@@ -1,0 +1,14 @@
+*.env
+*.pyc
+__pycache__/
+.vscode/
+.idea/
+*.pem
+*.key
+config.json
+token.json
+wbdailyparser-d1ec5485b486.json
+downloads
+*.log
+*.bat
+*.xlsx

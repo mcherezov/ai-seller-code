@@ -1,0 +1,6 @@
+notebooks/data/**
+notebooks/dumps/**
+notebooks_archive/**
+**/.ipynb_checkpoints
+*.pyc
+*.pckl.lzma

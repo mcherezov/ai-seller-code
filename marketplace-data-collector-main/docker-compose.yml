@@ -1,0 +1,205 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    restart: "always"
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./postgresql/certs:/var/lib/postgresql/certs:ro
+    command: postgres
+
+
+
+#  jupyter:
+#    build: ./research
+#    ports:
+#      - "127.0.0.1:8888:8888"
+#    restart: "always"
+#    volumes:
+#      - ./research/code:/app
+
+  python_service:
+    build: ./python_service
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+      BACKUP_FOLDER: /backup
+      LOG_LEVEL: ${LOG_LEVEL}
+      SELENIUM_SERVICE_NAME: selenium
+    volumes:
+      - tables_backup:/backup
+      - shared_downloads:/home/seluser/Downloads
+    restart: "always"
+    depends_on:
+      - db
+
+#  ozon_ad_campaign_downloader:
+#    build: ./python_service
+#    environment:
+#      DB_HOST: db
+#      DB_PORT: 5432
+#      DB_NAME: ${DB_NAME}
+#      DB_USER: ${DB_USER}
+#      DB_PASSWORD: ${DB_PASSWORD}
+#      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+#      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+#      LOG_LEVEL: ${LOG_LEVEL}
+#    restart: "always"
+#    depends_on:
+#      - db
+#    command: fastapi run ozon_ad_campaign_downloader.py
+#    networks:
+#      - bridge_network
+#
+#  history_downloader:
+#    build: ./python_service
+#    environment:
+#      DB_HOST: db
+#      DB_PORT: 5432
+#      DB_NAME: ${DB_NAME}
+#      DB_USER: ${DB_USER}
+#      DB_PASSWORD: ${DB_PASSWORD}
+#      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+#      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+#      LOG_LEVEL: ${LOG_LEVEL}
+#      SELENIUM_SERVICE_NAME: selenium_history_downloader
+#    restart: no
+#    volumes:
+#      - shared_downloads:/home/seluser/Downloads
+#    depends_on:
+#      - db
+#    command: python history_downloader.py
+#
+#  history_sales_downloader:
+#    build: ./python_service
+#    environment:
+#      DB_HOST: db
+#      DB_PORT: 5432
+#      DB_NAME: ${DB_NAME}
+#      DB_USER: ${DB_USER}
+#      DB_PASSWORD: ${DB_PASSWORD}
+#      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+#      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+#      LOG_LEVEL: ${LOG_LEVEL}
+#      SELENIUM_SERVICE_NAME: selenium_history_sales_downloader
+#    restart: "no"
+#    volumes:
+#      - shared_downloads:/home/seluser/Downloads
+#      - ./google_chrome_users_report_downloader/:/google_chrome_users/
+#    depends_on:
+#      - db
+#      - selenium_history_sales_downloader
+#    command: python history_sales.py
+#
+#  autobidder:
+#    build: ./python_service
+#    environment:
+#      DB_HOST: db
+#      DB_PORT: 5432
+#      DB_NAME: ${DB_NAME}
+#      DB_USER: ${DB_USER}
+#      DB_PASSWORD: ${DB_PASSWORD}
+#      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+#      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+#      LOG_LEVEL: ${LOG_LEVEL}
+#    restart: on-failure
+#    depends_on:
+#      - db
+#    command: python autobidder.py
+
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    environment:
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_MAX_SESSIONS=3
+      - JAVA_OPTS=-XX:ActiveProcessorCount=3
+      - SE_VNC_PASSWORD=${SELENIUM_VNC_PASSWORD}
+    ports:
+      - "5900:5900"
+      - "4444:4444"
+    deploy:
+      resources:
+        limits:
+          memory: 3000M
+    volumes:
+      - ./google_chrome_users/:/google_chrome_users/
+      - shared_downloads:/home/seluser/Downloads
+    restart: "always"
+    shm_size: '200mb'
+
+#  selenium_history_downloader:
+#    image: selenium/standalone-chrome:latest
+#    environment:
+#      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+#      - SE_NODE_MAX_SESSIONS=3
+#      - JAVA_OPTS=-XX:ActiveProcessorCount=3
+#      - SE_VNC_PASSWORD=${SELENIUM_VNC_PASSWORD}
+#    ports:
+#      - "5901:5900"
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 3000M
+#    volumes:
+#      - ./google_chrome_users_history_downloader/:/google_chrome_users/
+#      - shared_downloads:/home/seluser/Downloads
+#    restart: "always"
+#    shm_size: '200mb'
+#
+#  selenium_history_sales_downloader:
+#    image: selenium/standalone-chrome:latest
+#    environment:
+#      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+#      - SE_NODE_MAX_SESSIONS=3
+#      - JAVA_OPTS=-XX:ActiveProcessorCount=3
+#      - SE_VNC_PASSWORD=${SELENIUM_VNC_PASSWORD}
+#    ports:
+#      - "5903:5900"                     # можно сместить порт VNC, чтобы не конфликтовал
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 3000M
+#    volumes:
+#      - ./google_chrome_users_report_downloader/:/google_chrome_users/
+#      - shared_downloads:/home/seluser/Downloads
+#    restart: "always"
+#    shm_size: '200mb'
+
+  nginx:
+    image: nginx:latest
+    # TODO: open when some public access will be required
+    ports:
+      - "8080:80"
+      - "443:443"
+    restart: "always"
+    depends_on:
+      - python_service
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/:ro
+      - ./nginx/cert:/etc/nginx/ssl/:ro
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+    networks:
+      - bridge_network
+
+
+volumes:
+  db_data:
+  tables_backup:
+  shared_downloads:
+    name: shared_downloads
+    external: true
+
+networks:
+  bridge_network:
+    external: True

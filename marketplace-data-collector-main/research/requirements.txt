@@ -1,0 +1,2 @@
+jupyterlab
+psycopg2-binary
